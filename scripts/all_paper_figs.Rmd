@@ -1,0 +1,556 @@
+---
+title: "STATE Paper Figures"
+output:
+  word_document:
+    reference_docx: knitting_files/word_template.docx
+  pdf_document: default
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(viridis)
+library(ggbeeswarm)
+library(patchwork)
+library(waffle)
+library(gridExtra)
+library(reshape2)
+library(pheatmap)
+library(pander)
+#set wd
+new_wd <- file.path("~", "project", "STATE_analyses")
+setwd(new_wd)
+
+source(file.path("R", "all_paper_figs_functions.R"))
+
+#set paths to read from:
+fig5_snvs <- file.path(new_wd, "data_to_push", "fig5_joined_snv_clinical.csv")
+
+knitr::opts_knit$set(root.dir = new_wd)
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, message = FALSE)
+```
+
+
+```{r fig1a_load-data}
+# Figure 1A: Percentage of recovery (LOD/LOQ)
+df100 <- readRDS(file.path(new_wd, "input_data", "fig1", "recovery_pct", "isec_results_vs100sample.rds"))
+```
+
+```{r fig1a, results = "asis"}
+# filter out the 100% samples
+df100_filt <- df100 %>%
+  filter(sample_purity < 100) %>%
+  rename("Percent Recall" = recall,
+         "Percentage Exogenous DNA" = sample_purity)
+
+recall_plot <- ggplot(data = df100_filt, aes(x = `Percentage Exogenous DNA`, y = `Percent Recall`)) +
+  geom_smooth(method = "lm", color = "#20928CFF", linetype = "longdash", linewidth = 1, se = FALSE) +
+  geom_jitter(alpha = .5, size = 3, width = 0.16) +
+  theme_classic() +
+  scale_x_continuous(breaks = unique(df100_filt$`Percentage Exogenous DNA`), limits = c(0, max(df100_filt$`Percentage Exogenous DNA`, na.rm = TRUE) + .2))
+
+ggsave('plots/fig1/pct_of_recovery.png', recall_plot)
+recall_plot
+
+```
+
+
+
+$$
+\text{Percent Recall}= \frac{tp}{tp+fn}*100
+$$
+
+tp = "True Positive" = intersection of sample and 100% combined "pure sample"
+fp = "false positive" = SNVs JUST found in sample (not 100% "pure sample")
+
+Intuitively, percent recall can be thought of as the percent overlap with pure sample compared to percentage observed snvs per sample.
+
+
+```{r fig1a_means, results = "asis"}
+means_df <- df100_filt %>%
+  group_by(`Percentage Exogenous DNA`) %>%
+  summarize(mean_tp = mean(tp),
+            mean_fp = mean(fp),
+            mean_fn = mean(fn),
+            mean_recall = mean(`Percent Recall`))
+names(means_df) <- c("Percent\nExogenous DNA", "Mean\nRecall", "Mean\nTrue Positives", "Mean\nFalse Positives", "Mean\nFalse Negatives")
+pandoc.table(means_df, keep.line.breaks = TRUE)
+```
+
+```{r fig1a_coefs, results = "asis"}
+#get model coefficients
+linmod <- lm(`Percent Recall` ~ `Percentage Exogenous DNA`, data = df100_filt)
+lm_summ <- summary(linmod)
+coef_df <- as.data.frame(lm_summ$coefficients)
+coef_df[["Terms"]] <- row.names(coef_df)
+row.names(coef_df) <- NULL
+coef_df <- coef_df %>% relocate(Terms)
+coef_tab <- pandoc.table(coef_df, caption = "Model Coefficients")
+#get rsquared
+rsq_df <- as.data.frame(c(lm_summ$r.squared))
+names(rsq_df) <- c("Rsq")
+rsq_tab <- pandoc.table(rsq_df)
+```
+
+\newpage
+
+
+```{r sanity_tab, echo = TRUE, results = "asis"}
+sanity_tab <- df100 %>%
+  mutate(sample_type_nice = case_when(sample_type == "100% intersection" ~ sample_type,
+                                      TRUE ~ paste0(sample_purity, "% sample")),
+         total_snvs = tp + fp,
+         purebt474_total_snvs = mean(tp[sample_type_nice == "100% intersection"], na.rm = TRUE)) %>%
+  group_by(sample_type_nice) %>%
+  mutate(mean_snvs_by_purity = mean(total_snvs, na.rm = TRUE),
+         snvs_vs_100snvs = mean_snvs_by_purity/mean(purebt474_total_snvs, na.rm = TRUE)) %>%
+  dplyr::select(sample_type_nice, total_snvs, mean_snvs_by_purity, snvs_vs_100snvs) %>%
+  distinct()
+names(sanity_tab) <- c("Sample Purity", "Total SNVS", "Mean SNVs", "SNVs vs 100% SNVs")
+
+output_tab <- sanity_tab %>%
+  dplyr::select(-`Total SNVS`) %>%
+  distinct()
+pandoc.table(output_tab)
+```
+
+$$
+\text{SNVs vs 100% SNVs} = \frac{mean(tp+fp_{sample})}{mean(tp+fp_{100\% intersection})}
+$$
+
+\newpage
+
+Fig 1A: Recovery of single nucleotide variants observed in a pure sample of BT-474 DNA at 1%, 5% and 10% DNA spike-n concentration
+
+This figure uses the number of SNVs in the intersection between the 100% BT474 and 1, 5, and 10% BT474
+
+![ISEC Image](knitting_files/images/venn.png)
+
+
+```{r fig1b_import_data}
+# Figures 1B-1F: Signatures recovery of contrived sample
+
+## Figure 1B: Identification of characteristic SBS mutational signatures of BT-474 at different DNA spike-in concentrations. Ground truth based on Petlijak 2019.
+df1b0 <- read.csv(file.path(new_wd, "input_data", "fig1", "recovery_figs", "sig_recovery.csv"))
+df1b <- df1b0 %>%
+  #filter out samples with -1 or 100 % bt474
+  filter(!(BT474_percent %in% c(-1, 100))) %>%
+  mutate(BT474_percent = factor(BT474_percent),
+         sbs_num = as.numeric(str_extract(SBS, "[[:digit:]]+"))) %>%
+  arrange(sbs_num)
+df1b$SBS <- factor(df1b$SBS, levels = unique(df1b$SBS))
+
+#make dataframe for horizontal lines
+df1b_lines <- df1b0 %>%
+  filter(BT474_percent == -1)
+```
+
+```{r fig1b_plot, fig.height = 4, fig.width = 6}
+sbs_contrived <- ggplot() +
+  geom_quasirandom(data = df1b, aes(x = SBS, y = Activity_ratio, color = BT474_percent), alpha = .5) +
+  geom_errorbar(data = df1b_lines, aes(x = SBS, ymin = Activity_ratio, ymax = Activity_ratio)) +
+  theme_classic() +
+  # ggtitle("Signature Recovery of Contrived Samples") +
+  scale_color_viridis_d(end = .8) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  labs(color = "Percentage\nExogenous DNA") +
+  ylab("Proportion Signature Activity") +
+  xlab("Single Base Substitution Signature")
+sbs_contrived
+
+ggsave('plots/fig1/sbs_contrived.png', sbs_contrived)
+```
+
+
+```{r fig1cf_load-data}
+## Fig1C-F: Fig1 C-F: Retrieval of BT-474 characteristic signatures (SBS2, SBS13) and universal SBS (SBS1, SBS5) as a function of BT-474 spike-in concentration.
+
+df <- read.csv(file.path(new_wd, "input_data", "fig1", "recovery_figs", "contrived_snv_metrics.csv")) %>%
+  mutate(replicate = as.factor(replicate))
+```
+
+\newpage
+
+```{r fig1cf, results = "asis", warning = FALSE, message = FALSE, fig.width = 4, fig.height = 4}
+sb_cols <- c("SBS2_ratio", "SBS13_ratio", "SBS1_ratio", "SBS5_ratio")
+#make plots
+plots <- sb_cols %>%
+  #write output - TRUE will save snvs and coefficients to csvs
+  map(plot_sb_ratio, write_output = FALSE)
+```
+
+```{r fig20}
+# Figure 2: SNV frequency histogram before vs. after filtering
+snv_freqs <- read.csv("input_data/fig2/snv_freqs.csv")
+```
+
+```{r fig2}
+passed_vcf <- snv_freqs[snv_freqs$set == 'passed filter',]
+prefilter_vcf <- snv_freqs[snv_freqs$set == 'pre filter subsampled',]
+
+plot1 <- ggplot(prefilter_vcf, aes(x=AF)) +
+  geom_density(fill="#21908CFF", color="#20928CFF", alpha=0.5) + 
+  theme_classic() + 
+  xlim(0, 1.1) + 
+  xlab("") + ylab("")
+
+plot2 <- ggplot(passed_vcf, aes(x=AF)) +
+  geom_density(fill="#21908CFF", color="#20928CFF", alpha=0.5) + 
+  theme_classic() + 
+  xlim(0, 1.1) + 
+  xlab("") + ylab("")
+
+grid.arrange(plot1, plot2, nrow = 2, ncol=1, left = "Density", bottom = "SNV frequency")
+g <- arrangeGrob(plot1, plot2, nrow = 2, ncol=1, left = "Density",
+                 bottom = "SNV frequency", 
+                 top = "")
+
+ggsave('plots/fig2/snv_freqs.png', g)
+```
+
+```{r fig7_plot}
+#Figure 7
+df7 <- read_csv(file.path("input_data", "fig7", "fig7.csv"))
+colnames(df7) <- gsub('...5', '_mean', colnames(df7))
+colnames(df7) <- gsub('...6', '_median', colnames(df7))
+df7 <- df7[-1, ]
+var_class_list <- c("IGR", "INTRON", "RNA", "SILENT", "MISSENSE")
+for_plot <- df7 %>%
+  filter(`34_variantClassification` %in% var_class_list) %>%
+  mutate(var_class = recode(str_to_title(`34_variantClassification`),
+                            "Rna" = "mRNA\nEncoding",
+                            "Intron" = "Intronic",
+                            "Igr" = "Intergenic"),
+         af_median = as.numeric(AF_median))
+
+# Order by median
+median_sorter <- for_plot %>%
+  group_by(var_class) %>%
+  summarize(af_median_median = median(af_median, na.rm = TRUE)) %>%
+  arrange(af_median_median) %>%
+  dplyr::select(var_class, af_median_median)
+
+for_plot <- for_plot %>%
+  mutate(var_class = factor(var_class, levels = as.list(median_sorter$var_class))) %>%
+  dplyr::select(var_class, af_median)
+
+fig7_bp <- ggplot(data = for_plot, aes(x = af_median, y = var_class)) +
+  geom_boxplot() +
+  geom_quasirandom(alpha = .2, size = 1) +
+  theme_classic() +
+  ylab("Variant Classification") +
+  xlab("Median Allele Frequency") +
+  xlim(c(0, max(for_plot$af_median)))
+fig7_bp
+
+ggsave('plots/fig7/median_boxplots.png', fig7_bp)
+```
+
+
+
+```{r fig.width = 12, fig.height = 8}
+# Figure 3: TensorSignatures' of subjects' high-confidence sSNVs compared to HG002 false positives sSNVs 
+ts_snv_ratios <- read.csv("input_data/fig3/subject_exposure_df_norm_subsample.csv")
+colnames(ts_snv_ratios) <- gsub('mutsig_ratio_ts', 'TS', colnames(ts_snv_ratios))
+ts_snv_ratios_long <- gather(ts_snv_ratios, group, value, TS01:TS20) %>%
+  arrange(factor(X, levels = c('fp','subject'))) %>% 
+  mutate(x=factor(X, levels=unique(X)))
+
+ts_bar_plot <- ggplot(ts_snv_ratios_long, aes(y=value, x = factor(names, unique(names)), fill = X)) + 
+  geom_bar(stat='identity', width = 1.0, na.rm = TRUE) + 
+  facet_wrap(vars(group), scales = 'free') + 
+  ggtitle("TensorSignatures' of subjects' high-confidence sSNVs compared to HG002 false positives sSNVs") +
+  xlab("") + 
+  ylab("Proportion") + 
+  labs(fill = 'Sample') + 
+  theme_classic() + 
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  scale_y_continuous(labels = scales::label_scientific()) + 
+  scale_fill_manual(values = c("#feca8d", "#f1605d"))
+
+ts_bar_plot
+ggsave('plots/fig3/ts_bars.png', ts_bar_plot)
+```
+
+```{r clustermap}
+
+norms <- read_csv(file.path(new_wd, "input_data", "fig3", "subject_fp_exposure_norm.csv"))
+colnames(norms) <- gsub('mutsig_ratio_ts', 'TS', colnames(norms))
+norms_matrix <- as.matrix(norms[-c(1, 22)])
+rownames(norms_matrix) <- norms$names
+
+anno <- data.frame(Sample = c(rep('Subject', 277), rep('False Postitive', 67)), row.names = rownames(norms_matrix))
+
+nbreaks <- 5 # as many breaks as you want
+get.breaks <- seq(from = 0, to = 0.4,
+                  length.out = nbreaks)
+
+p.table <- pheatmap(t(norms_matrix), treeheight_row = 0, 
+              cluster_rows=F, show_colnames = F, 
+              clustering_method = 'average', 
+              annotation_col = anno,
+              annotation_colors = list(Sample = c('False Postitive'= '#f1605d', 'Subject' = '#feca8d')),
+              annotation_legend = T, 
+              color = viridis(344, begin = 0.33, end = 1),
+              main = "",
+              legend_breaks = c(get.breaks, max(get.breaks)),
+              legend_labels = c(get.breaks, "r"),
+              silent = TRUE)$gtable
+
+index <- length(p.table$grobs)
+legend.grob <- p.table$grobs[[index]]
+legend.grob$children[[2]]$label[nbreaks+1] <- expression("Ratio")
+legend.grob$children[[2]]$hjust <- c(rep(0, nbreaks), 0.75)
+legend.grob$children[[2]]$vjust <- c(rep(0.5, nbreaks), -4)
+p.table$grobs[[index]] <- legend.grob
+
+library(grid)
+grid.newpage()
+grid.draw(p.table)
+
+ggsave('plots/fig3/ts_clusters.png', p.table)
+```
+
+
+```{r fig.width = 14, fig.height = 4}
+# Figure 4: COSMIC SBSs are individual specific
+
+activities_df <- read_csv("./input_data/fig4/activities.csv")
+plotting_data <- read_csv("./input_data/fig4/data_for_tmb.csv")
+
+tmb_plot <- ggplot() + 
+  geom_point(data = activities_df, mapping = aes(x = index, y = Mut_burden), size = 0.5) +
+  geom_hline(data = plotting_data, aes(yintercept = redbars, color = "red"), show.legend = F) +
+  theme(axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank()) + 
+  facet_grid(~factor(Types, levels = plotting_data$names),
+          scales="free_x", ) +
+  theme(panel.spacing.x = unit(0.2, "lines"),
+          plot.margin = unit(c(0.5,1,0.5,1), "lines")) +
+  theme(panel.border = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          strip.background = element_rect(fill="white"),
+          strip.text.x.top = element_text(angle = -45)) +
+  scale_y_log10("Somatic Mutations per Megabase", 
+          limits = c(0.0002, 1),
+          breaks = c(0.001, 0.01, 0.1, 1),
+          labels = c("0.001", "0.01", "0.1", "1")) +
+          coord_cartesian(clip = "off") +
+  geom_label(data = plotting_data, parse = TRUE, size = 5, color = "white",
+          aes(x = plotting_data$x_labs, y = 0.0002, 
+          label = paste0("frac(", plotting_data$counts, ",", plotting_data$input_counts, ")"))) +
+  geom_text(data = plotting_data, parse = TRUE, size = 3,
+            aes(x = plotting_data$x_labs, y = 0.0002, 
+            label = paste0("frac(", plotting_data$counts, ",", plotting_data$input_counts, ")"))) 
+
+tmb_plot
+ggsave('plots/fig4/sbs_tmb_plot.png', tmb_plot)
+```
+
+\newpage
+
+```{r, warning = FALSE}
+# Figure 5: Regression of corrected SNV counts vs age
+
+model_vals <- read_csv("input_data/fig5/age_lqmm_numtable.csv")
+metric <- 'snv_count_adj3'
+agg_snv <- read_agg_data(new_wd)
+
+slope <- as.double(model_vals[model_vals$Variable == metric, 'Slope.Value'])
+intercept <- as.double(model_vals[model_vals$Variable == metric, 'Intercept.Value'])
+fit_p = as.double(model_vals[model_vals$Variable == metric, 'lqmm.p'])
+anova_p = as.double(model_vals[model_vals$Variable == metric, 'anova.p'])
+
+snv_vs_age <- ggplot(agg_snv, aes_string(x = 'draw_age', y = metric)) +
+  geom_point() + 
+  geom_abline(slope = slope, intercept = intercept) + 
+  xlab("Subject Age") + 
+  ylab("sSNV Counts") + 
+  xlim(c(20, 100)) + 
+  ylim(c(0, 1600)) +
+  theme_classic()
+
+snv_vs_age
+ggsave('plots/fig5/snv_vs_age.png', snv_vs_age)
+```
+
+
+```{r fig6_import_data}
+# Figure 6: Histograms of slopes from individual models
+dynamic_df_grp_melt <- read_csv(file.path("input_data", "fig6", "slopes_intercepts.csv"))
+#filter dynamic_df_grp_melt for only sbsXX_ratio columns
+for_plot <- dynamic_df_grp_melt %>%
+  filter(grepl("SBS[[:digit:]]+_ratio", dynamic_df_grp_melt$label)) %>%
+  mutate(label_nice = str_replace_all(str_to_title(str_replace_all(label, "_|ratio", " ")), "Sbs", "SBS"),
+         sbs_ratio_num = as.numeric(str_extract(label, "[:digit:]+")))
+
+for_plot["dummy"] <- 0
+symmetric_max <- max(abs(for_plot$slope))
+```
+
+```{r fig6_violin_plot, fig.height = 4, fig.width = 9}
+v_plot <- ggplot(data = for_plot, aes(x = slope, y = label_nice)) +
+    geom_vline(aes(xintercept = 0), color = "black", linewidth = .5) +
+  geom_violin(alpha = .3, scale = "width", color = "#440154FF", fill = "#440154FF") +
+  geom_quasirandom(alpha = .2, size = .5) +
+  theme_classic() +
+  ylab("") +
+  xlab("Slope") +
+  xlim(c(-symmetric_max, symmetric_max)) +
+  coord_flip() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+v_plot
+
+ggsave('plots/fig6/violin_plot.png', v_plot)
+```
+
+\newpage
+
+```{r fig6b_import_data}
+dynamic_df_grp_wide <- read_csv(file.path("input_data", "fig6", "dynamic_slopes_intercepts_wide.csv"))
+sbs1_med_slope = median(dynamic_df_grp_wide$SBS1_ratio_adj3_slope)
+sbs1_med_int = median(dynamic_df_grp_wide$SBS1_ratio_adj3_intercept)
+sbs5_med_slope = median(dynamic_df_grp_wide$SBS5_ratio_adj3_slope)
+sbs5_med_int = median(dynamic_df_grp_wide$SBS5_ratio_adj3_intercept)
+sbs18_med_slope = median(dynamic_df_grp_wide$SBS18_ratio_adj3_slope)
+sbs18_med_int = median(dynamic_df_grp_wide$SBS18_ratio_adj3_intercept)
+sbs90_med_slope = median(dynamic_df_grp_wide$SBS90_ratio_adj3_slope)
+sbs90_med_int = median(dynamic_df_grp_wide$SBS90_ratio_adj3_intercept)
+```
+
+```{r, fig6b_lin_plot, warning = FALSE}
+chosen_sbs <- c("SBS1_ratio_adj3", "SBS5_ratio_adj3", "SBS18_ratio_adj3", "SBS90_ratio_adj3")
+
+chosen_sbs_plots <- lapply(chosen_sbs, plot_lin_mods)
+names(chosen_sbs_plots) <- chosen_sbs
+chosen_sbs_plots
+```
+
+
+
+![Figure S1: Filtering schema](knitting_files/filtration_schema.png)
+
+
+![Figure S2: Description of the workflpostow and processing times](knitting_files/workflow.png)
+
+
+```{r}
+# Figure S3: COSMIC SBSs' of subjects' high-confidence sSNVs compared to HG002 false positives sSNVs
+
+cat_mutsigs <- read.csv(file.path("input_data", "fig3", "cat_mutsigs.csv"))
+df <- filter(cat_mutsigs, ratio > 0 & Data.Type != 'SBS_pre_filtering') 
+df <- df %>% count(signature, Data.Type)
+df <- df %>% complete(signature, nesting(Data.Type), fill = list(n = 0))
+
+fp_samples <- df[df$Data.Type != 'SBS_post_filtering', ]
+sbj_samples <- df[df$Data.Type != 'SBS_false_positives', ]
+
+fp_samples <- rbind(fp_samples, data.frame(signature = fp_samples$signature, Data.Type = "NA", n = c(67 - fp_samples$n)))
+sbj_samples <- rbind(sbj_samples, data.frame(signature = sbj_samples$signature, Data.Type = "NA", n = c(314 - sbj_samples$n)))
+
+fp_samples <- fp_samples %>% mutate(n = round(n / 67 * 100))
+sbj_samples <- sbj_samples %>% mutate(n = round(n / 314 * 100))
+
+values <- c("#EDEDED", '#f1605d', '#feca8d')
+names(values) <- c('NA', 'SBS_false_positives', 'SBS_post_filtering')
+plot_list = list()
+i <- 0
+
+for (sig in unique(fp_samples$signature)) {
+  sig_fp_df <- fp_samples[fp_samples$signature == sig, ]
+  sig_sbj_df <- sbj_samples[sbj_samples$signature == sig, ]
+  
+  # false positives
+  p1 <- ggplot(sig_fp_df) +
+    geom_waffle(mapping = aes(fill = Data.Type, values = n),
+                n_rows = 10, n_cols = 10, colour = "white", flip = TRUE, 
+                radius = grid::unit(0.5, "npc"), show.legend = F) +
+  scale_fill_manual(values = values) + coord_cartesian(ylim = c(0,10)) +
+  # theme specification
+  theme_minimal() +
+  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        strip.background = element_rect(color = "white"),
+        strip.placement = "inside",
+        strip.text = element_text(vjust = -1, hjust = 0.75),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+  
+  # subject
+  p2 <- ggplot(sig_sbj_df) +
+    geom_waffle(mapping = aes(fill = Data.Type, values = n),
+                n_rows = 10, n_cols = 10, colour = "white", flip = TRUE, 
+                radius = grid::unit(0.5, "npc"), show.legend = F) +
+    scale_fill_manual(values = values) + coord_cartesian(ylim = c(0,10)) +
+    # theme specification
+    theme_minimal() + 
+    theme(plot.margin = unit(c(0, 0, 0, 0), "cm"),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          strip.background = element_rect(color = "white"),
+          strip.placement = "inside",
+          strip.text = element_text(vjust = -1),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+
+  i <- i + 1
+  plot_list[[i]] <- wrap_elements((p1 | p2) + 
+  plot_layout(guides = "auto") + plot_annotation(title = sig, theme = theme(plot.title=element_text(size = 8, hjust=0.5))) & theme(plot.margin = unit(c(0,0,0,0), "pt")))
+}
+
+values <- c('#f1605d', '#feca8d')
+names(values) <- c('False Positive', 'Subject')
+legend_df <- df[df$Data.Type != 'NA', ]
+legend_df <- legend_df %>% 
+  mutate(Sample = recode(Data.Type, 
+                         'SBS_false_positives' = 'False Positive',
+                         'SBS_post_filtering' = 'Subject'))
+
+legend_plot <- ggplot(legend_df, aes(signature)) + geom_bar(aes(fill = Sample), width = 0.1, alpha = 0.000001) +
+  scale_fill_manual(values = values, limits = names(values), guide = guide_legend(override.aes = list(alpha = 1))) + 
+  theme(legend.position="none") + theme_void()
+
+p <- wrap_plots(plot_list, ncol = 8) / legend_plot +
+  plot_layout(height = c(10, 0.1), guides = "auto") &
+  theme(legend.position = "bottom")
+p
+ggsave("plots/fig3/waffle_sbs.png", p, width = 10, height = 6)
+```
+
+\newpage
+
+```{r fig3_table, results = "asis"}
+sbs0 <- cat_mutsigs %>% complete(signature, nesting(Data.Type), fill = list(n = 0))
+  
+sds <- sbs0 %>%
+  filter(Data.Type != 'SBS_pre_filtering') %>%
+  mutate(ratio = case_when(is.na(ratio) ~ 0,
+                           TRUE ~ ratio)) %>%
+  group_by(Data.Type, signature) %>%
+  # SD across all HG002s and samples
+  summarize(mean_snv_ratio = mean(ratio, na.rm = TRUE),
+            sd_snv_ratio = sd(ratio, na.rm = TRUE))
+
+sds_fn <- sds %>%
+  filter(Data.Type == "SBS_false_positives")
+sds_pf <- sds %>%
+  filter(Data.Type == "SBS_post_filtering")
+
+sds_final <- merge(sds_fn, sds_pf, by = "signature", suffixes = c("_fp", "_pf"))
+sds_final <- sds_final %>%
+  dplyr::select(names(sds_final)[!grepl("Data.Type", names(sds_final))])
+sds_final[nrow(sds_final) + 1,] <- append("Mean", as.list(colMeans(sds_final[,-1], na.rm = TRUE)))
+names(sds_final) <- c("Signature", "HG002\nMean SNV Ratio", "HG002\nSD SNV Ratio", "Samples\nMean SNV Ratio", "Samples\nSD SNV Ratio")
+pandoc.table(sds_final, keep.line.breaks = TRUE, emphasize.rows = nrow(sds_final))
+```
+
+
+
