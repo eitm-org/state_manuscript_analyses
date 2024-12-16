@@ -24,9 +24,6 @@ setwd(new_wd)
 
 source(file.path("scripts", "all_paper_figs_functions.R"))
 
-#set paths to read from:
-fig6_snvs <- file.path(new_wd, "data_to_push", "fig6_joined_snv_clinical.csv")
-
 knitr::opts_knit$set(root.dir = new_wd)
 knitr::opts_chunk$set(echo = FALSE, error = FALSE, message = FALSE)
 ```

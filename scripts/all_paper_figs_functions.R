@@ -15,7 +15,6 @@ library(ggplot2)
 #
 ####################################################
 
-
 wrapper <- function(x, ...) 
 {
   paste(strwrap(x, ...), collapse = "\n")
@@ -443,7 +442,8 @@ get_anova_summary <- function(data, cols, formula_str1, formula_str2,
 }
 
 read_agg_data <- function(work_dir) {
-  agg_snv <- read.csv(file.path(fig5_snvs))
+  fig6_snvs <- file.path(new_wd, "data_to_push", "fig6_joined_snv_clinical.csv")
+  agg_snv <- read.csv(file.path(fig6_snvs))
   agg_snv[is.na(agg_snv)] <- 0 # fill all nans with 0
   
   return(agg_snv)
@@ -477,8 +477,8 @@ anova_for_age <- function(work_dir) {
 
 # make table and save to input data
 make_table <- function(intercepts, slopes, work_dir) {
-  lqmm_df <- read_csv(file.path(work_dir, "input_data", "fig5", "lqmm_age_data.csv"))
-  anova_df <- read_csv(file.path(work_dir, "input_data", "fig5", "anova_summary_age.csv"))
+  lqmm_df <- read_csv(file.path(work_dir, "input_data", "fig6", "lqmm_age_data.csv"))
+  anova_df <- read_csv(file.path(work_dir, "input_data", "fig6", "anova_summary_age.csv"))
   
   ## Non-numerical table
   data_table <- data.frame(
@@ -495,7 +495,7 @@ make_table <- function(intercepts, slopes, work_dir) {
   # remove mutsig variables
   data_table <- data_table[!grepl('mutsig', data_table$Variable, fixed=TRUE), ]
   
-  write_csv(data_table, file.path(work_dir, "input_data", "fig5", "age_lqmm_table.csv"))
+  write_csv(data_table, file.path(work_dir, "input_data", "fig6", "age_lqmm_table.csv"))
   
   ## Numerical table
   data_table <- data.frame(
@@ -514,7 +514,7 @@ make_table <- function(intercepts, slopes, work_dir) {
   # remove mutsig variables
   data_table <- data_table[!grepl('mutsig', data_table$Variable, fixed=TRUE), ]
   
-  write_csv(data_table, file.path(work_dir, "input_data", "fig5", "age_lqmm_numtable.csv"))
+  write_csv(data_table, file.path(work_dir, "input_data", "fig6", "age_lqmm_numtable.csv"))
 }
 
 plot_lin_mods <- function(colname) {
@@ -534,7 +534,7 @@ plot_lin_mods <- function(colname) {
   nice_colname <- paste("Proportion", nice_colname)
   ymax <- max(for_plot$yvar, na.rm = TRUE) + max(for_plot$yvar, na.rm = TRUE)/5
 
-  fig6b_lin <- ggplot() +
+  fig7b_lin <- ggplot() +
     geom_smooth(data = for_plot, aes(y = yvar, x = draw_month, group = draw_id), method = "lm", fill = NA, linewidth = .4, color = "darkgray") + 
     geom_point(data = for_plot, aes(y = yvar, x = draw_month, group = draw_id), size = 1, alpha = .5) + 
     theme(legend.position = "none") +
@@ -545,5 +545,5 @@ plot_lin_mods <- function(colname) {
     # ggtitle(paste("Dynamic Modelling--", nice_colname)) 
     ylim(c(0, ymax))
   
-  return(fig6b_lin)
+  return(fig7b_lin)
 }
