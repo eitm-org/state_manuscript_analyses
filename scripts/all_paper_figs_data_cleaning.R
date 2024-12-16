@@ -270,65 +270,6 @@ slopes <- lqmm_age_summaries[lqmm_age_summaries$Type == 'draw_age', ]
 
 make_table(intercepts, slopes, new_wd)
 
-############################################################
-#
-#        demographics csv
-#
-############################################################
-system(paste("rclone copy 'dropbox:", demo_redcap, "' '", file.path("input_data", "demo"), "'", sep = ""))
-
-ppids <- c('9HZC16EL0', '9HZC17EM0', '9HZC17EMO', '9HZC17LGG', '9HZC18LFG',
-           '9HZC18LEG', '9HZC18EMI', '9HZC19EI0', '9HZC19EL0', '9HZC19EJ0',
-           '9HZC19EM0', '9HZC19LHG', '9HZC19LFG', '9HZC19LEG', '9HZC19EMI',
-           'QIZC10EJ0', 'QIZC10EL0', 'QIZC10EM0', 'QIZC10LHG', 'QIZC10EMI',
-           'QIZC11LHG', 'QIZC11LGG', 'QIZC11LFG', 'QIZC11LEG', 'QIZC11EMI',
-           'QIZC12EI0', 'QIZC12EL0', 'QIZC12LHG', 'QIZC12LGG', 'QIZC12LFG',
-           'QIZC12LEG', 'QIZC12EMI', 'QIZC13EI0', 'QIZC13EK0', 'QIZC13EL0',
-           'QIZC13EJ0', 'QIZC13EM0', 'QIZC13LHG', 'QIZC13LFG', 'QIZC15EJ0',
-           'QIZC13LEG', 'QIZC13EMI', 'QIZC14EMI', 'QIZC14EI0', 'QIZC15EI0',
-           'QIZC14EK0', 'QIZC14EL0', 'QIZC14EM0', 'QIZC14LHG', 'QIZC14LFG',
-           'QIZC14LGG', 'QIZC14LEG', 'QIZC15EK0', 'QIZC15EL0', 'QIZC15EMO',
-           'QIZC15LGG', 'QIZC15LFG', 'QIZC16EL0', 'QIZC16EM0', 'QIZC15EMI',
-           'QIZC16EI0', 'QIZC16LHG', 'QIZC16LGG', 'QIZC16LEG', 'QIZC16EMI',
-           'QIZC17EI0', 'QIZC17EJ0', 'QIZC17EK0', 'QIZC17EL0', 'QIZC17EM0',
-           'QIZC17LHG', 'QIZC17LGG', 'QIZC17LFG', 'QIZC18EJ0', 'QIZC17LEG',
-           'QIZC17EMI', 'QIZC18EI0', 'QIZC18EK0', 'QIZC18LGG', 'QIZC18LFG',
-           'QIZC18LEG', 'QIZC18EMI', 'QIZC19EI0', 'QIZC19EK0', 'QIZC19EL0',
-           'QIZC19EM0', 'QIZC19LHG', 'QIZC19LGG', 'QIZC19LEG', 'QIZC19LFG',
-           'QIZC19EJ0', 'QJZC10EI0', 'QIZC19EMI', 'QIZC15LEG', 'QLZC12EM0',
-           'QIZC12EJ0', 'QIZC13LGG', 'QLZC23LGG', 'QLZC23LFG', 'QIZC16LFG',
-           '9HHC13EL0', '9HHC13EM0', 'QIZC15LHG')
-
-#PPID, age, gender, cohort assignment, race, ethnicity as columns
-demo_df <- read_csv(file.path("input_data", "demo", "STATE_Enrollment.csv"))
-active <- read_excel(file.path(".", "input_data", "cohorts", "STATE Draws - Deidentified_cohorts.xlsx"), sheet = "Active")
-active_ppids <- active$`Project Participant IDs`
-past_cancer <- read_excel(file.path(".", "input_data", "cohorts", "STATE Draws - Deidentified_cohorts.xlsx"), sheet = "Past Cancer")
-pc_ppids <- past_cancer$`Project Participant IDs`
-nocancer <- read_excel(file.path(".", "input_data", "cohorts", "STATE Draws - Deidentified_cohorts.xlsx"), sheet = "No Cancer")
-noc_ppids <- nocancer$`Project Participant IDs`
-
-demo_df <- demo_df %>%
-  mutate(white = recode(STATE_Race___White, "1" = "White", .default = ""),
-         other = str_remove(STATE_Race_Other, "\\{null\\}"),
-         afamer = recode(`STATE_Race___African American`, "1" = "African American", .default = ""),
-         amerind = recode(`STATE_Race___American Indian or Alaska Native`, "1" = "American Indian or Alaska Native", .default = ""),
-         asian = recode(STATE_Race___Asian, "1" = "Asian", .default = ""),
-         dec = recode(`STATE_Race___Decline to Answer`, "1" = "Decline to Answer", .default = ""),
-         namer = recode(`STATE_Race___Native American`, "1" = "Native American", .default = ""),
-         ethnicity = recode(`STATE_Race___Hispanic or Latino`, "1" = "Hispanic or Latino", .default = "Not Hispanic or Latino")) %>%
-  rowwise() %>%
-  mutate(race = paste0(afamer, amerind, asian, namer, white, other, dec, collapse = ", ")) %>%
-  ungroup() %>%
-  mutate(race = case_when(race == "" ~ "Other",
-                          TRUE ~ race),
-         cohort = case_when(STATE_PPID %in% active_ppids ~ "Active",
-                            STATE_PPID %in% pc_ppids ~ "Past Cancer",
-                            STATE_PPID %in% noc_ppids ~ "No Cancer")) %>%
-  dplyr::select(STATE_PPID, STATE_Age_Calculated, race, ethnicity, cohort) %>%
-  filter(STATE_PPID %in% ppids)
-
-write_csv(demo_df, file.path("input_data", "demographics.csv"))
 
 
 

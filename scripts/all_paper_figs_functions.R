@@ -442,7 +442,7 @@ get_anova_summary <- function(data, cols, formula_str1, formula_str2,
 }
 
 read_agg_data <- function(work_dir) {
-  fig6_snvs <- file.path(new_wd, "data_to_push", "fig6_joined_snv_clinical.csv")
+  fig6_snvs <- file.path(new_wd, "input_data", "fig6", "joined_snv_clinical.csv")
   agg_snv <- read.csv(file.path(fig6_snvs))
   agg_snv[is.na(agg_snv)] <- 0 # fill all nans with 0
   

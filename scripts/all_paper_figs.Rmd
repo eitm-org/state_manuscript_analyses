@@ -2,7 +2,7 @@
 title: "STATE Paper Figures"
 output:
   word_document:
-    reference_docx: knitting_files/word_template.docx
+    reference_docx: ./knitting_files/word_template.docx
   pdf_document: default
 date: "`r Sys.Date()`"
 ---
@@ -122,7 +122,7 @@ Fig 1A: Recovery of single nucleotide variants observed in a pure sample of BT-4
 
 This figure uses the number of SNVs in the intersection between the 100% BT474 and 1, 5, and 10% BT474
 
-![ISEC Image]((~/state_manuscript_analyses/knitting_files/images/venn.png)
+![ISEC Image]((./knitting_files/images/venn.png)
 
 
 ```{r fig1b_import_data}
@@ -424,10 +424,10 @@ names(chosen_sbs_plots) <- chosen_sbs
 chosen_sbs_plots
 ```
 
-![Figure S1: Filtering schema](~/state_manuscript_analyses/knitting_files/images/filtration_schema.png)
+![Figure S1: Filtering schema](./knitting_files/images/filtration_schema.png)
 
 
-![Figure S2: Description of the workflpostow and processing times](~/state_manuscript_analyses/knitting_files/images/workflow.png)
+![Figure S2: Description of the workflpostow and processing times](./knitting_files/images/workflow.png)
 
 
 ```{r}
