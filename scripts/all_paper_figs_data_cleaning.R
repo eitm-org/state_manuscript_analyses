@@ -119,13 +119,17 @@ for (file in files) {
     zipfile <- file
   }
   
+  contrived_map <- c('EIBS-002GA' = "100% sample", 'EIBS-002GB' = "1% sample", 'EIBS-002GC' = "5% sample", 'EIBS-002GD' = "10% sample")
+  
   system(paste("bcftools index -f", zipfile))
   # Getting complement of this file using bt474.vcf "ground truth" file
   system(paste("bcftools isec -p", file.path("input_data", "fig1", "recovery_pct", isecdir), zipfile, gt_vcf))
   sff_strt <- regexpr("EIBS-[[:digit:]]{3}[[:alpha:]]{2}_[[:digit:]]{5}_[[:digit:]]", filename)[[1]]
   sff_end <- sff_strt + attr(regexpr("EIBS-[[:digit:]]{3}[[:alpha:]]{2}_[[:digit:]]{5}_[[:digit:]]", filename), "match.length") - 1
   sampfromfile <- substr(filename, sff_strt, sff_end)
-  sample_type <- samples[samples == sampfromfile, "Contrived sample type"][[1]]
+  if (sampfromfile != "") {
+    sample_type <- contrived_map[[substring(sampfromfile, 0, 10)]]
+  }
   if (file == gt_vcf2) {
     sample_type <- "100% intersection"
   }

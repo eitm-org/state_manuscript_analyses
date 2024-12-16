@@ -386,7 +386,7 @@ for_plot["dummy"] <- 0
 symmetric_max <- max(abs(for_plot$slope))
 ```
 
-```{r fig6_violin_plot, fig.height = 4, fig.width = 9}
+```{r fig7_violin_plot, fig.height = 4, fig.width = 9}
 v_plot <- ggplot(data = for_plot, aes(x = slope, y = label_nice)) +
     geom_vline(aes(xintercept = 0), color = "black", linewidth = .5) +
   geom_violin(alpha = .3, scale = "width", color = "#440154FF", fill = "#440154FF") +
@@ -404,7 +404,7 @@ ggsave('plots/fig7/violin_plot.png', v_plot)
 
 \newpage
 
-```{r fig6b_import_data}
+```{r fig7b_import_data}
 dynamic_df_grp_wide <- read_csv(file.path("input_data", "fig7", "dynamic_slopes_intercepts_wide.csv"))
 sbs1_mean_slope = mean(dynamic_df_grp_wide$SBS1_ratio_adj3_slope)
 sbs1_mean_int = mean(dynamic_df_grp_wide$SBS1_ratio_adj3_intercept)
@@ -416,7 +416,7 @@ sbs90_mean_slope = mean(dynamic_df_grp_wide$SBS90_ratio_adj3_slope)
 sbs90_mean_int = mean(dynamic_df_grp_wide$SBS90_ratio_adj3_intercept)
 ```
 
-```{r, fig6b_lin_plot, warning = FALSE}
+```{r, fig7b_lin_plot, warning = FALSE}
 chosen_sbs <- c("SBS1_ratio_adj3", "SBS5_ratio_adj3", "SBS18_ratio_adj3", "SBS90_ratio_adj3")
 
 chosen_sbs_plots <- lapply(chosen_sbs, plot_lin_mods)
