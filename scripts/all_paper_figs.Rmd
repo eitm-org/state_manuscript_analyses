@@ -19,13 +19,13 @@ library(reshape2)
 library(pheatmap)
 library(pander)
 #set wd
-new_wd <- file.path("~", "project", "STATE_analyses")
+new_wd <- file.path("~", "project", "state_manuscript_analyses")
 setwd(new_wd)
 
-source(file.path("R", "all_paper_figs_functions.R"))
+source(file.path("scripts", "all_paper_figs_functions.R"))
 
 #set paths to read from:
-fig5_snvs <- file.path(new_wd, "data_to_push", "fig5_joined_snv_clinical.csv")
+fig6_snvs <- file.path(new_wd, "data_to_push", "fig6_joined_snv_clinical.csv")
 
 knitr::opts_knit$set(root.dir = new_wd)
 knitr::opts_chunk$set(echo = FALSE, error = FALSE, message = FALSE)
@@ -125,7 +125,7 @@ Fig 1A: Recovery of single nucleotide variants observed in a pure sample of BT-4
 
 This figure uses the number of SNVs in the intersection between the 100% BT474 and 1, 5, and 10% BT474
 
-![ISEC Image](knitting_files/images/venn.png)
+![ISEC Image]((~/state_manuscript_analyses/knitting_files/images/venn.png)
 
 
 ```{r fig1b_import_data}
@@ -151,7 +151,6 @@ sbs_contrived <- ggplot() +
   geom_quasirandom(data = df1b, aes(x = SBS, y = Activity_ratio, color = BT474_percent), alpha = .5) +
   geom_errorbar(data = df1b_lines, aes(x = SBS, ymin = Activity_ratio, ymax = Activity_ratio)) +
   theme_classic() +
-  # ggtitle("Signature Recovery of Contrived Samples") +
   scale_color_viridis_d(end = .8) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   labs(color = "Percentage\nExogenous DNA") +
@@ -208,46 +207,6 @@ g <- arrangeGrob(plot1, plot2, nrow = 2, ncol=1, left = "Density",
 
 ggsave('plots/fig2/snv_freqs.png', g)
 ```
-
-```{r fig7_plot}
-#Figure 7
-df7 <- read_csv(file.path("input_data", "fig7", "fig7.csv"))
-colnames(df7) <- gsub('...5', '_mean', colnames(df7))
-colnames(df7) <- gsub('...6', '_median', colnames(df7))
-df7 <- df7[-1, ]
-var_class_list <- c("IGR", "INTRON", "RNA", "SILENT", "MISSENSE")
-for_plot <- df7 %>%
-  filter(`34_variantClassification` %in% var_class_list) %>%
-  mutate(var_class = recode(str_to_title(`34_variantClassification`),
-                            "Rna" = "mRNA\nEncoding",
-                            "Intron" = "Intronic",
-                            "Igr" = "Intergenic"),
-         af_median = as.numeric(AF_median))
-
-# Order by median
-median_sorter <- for_plot %>%
-  group_by(var_class) %>%
-  summarize(af_median_median = median(af_median, na.rm = TRUE)) %>%
-  arrange(af_median_median) %>%
-  dplyr::select(var_class, af_median_median)
-
-for_plot <- for_plot %>%
-  mutate(var_class = factor(var_class, levels = as.list(median_sorter$var_class))) %>%
-  dplyr::select(var_class, af_median)
-
-fig7_bp <- ggplot(data = for_plot, aes(x = af_median, y = var_class)) +
-  geom_boxplot() +
-  geom_quasirandom(alpha = .2, size = 1) +
-  theme_classic() +
-  ylab("Variant Classification") +
-  xlab("Median Allele Frequency") +
-  xlim(c(0, max(for_plot$af_median)))
-fig7_bp
-
-ggsave('plots/fig7/median_boxplots.png', fig7_bp)
-```
-
-
 
 ```{r fig.width = 12, fig.height = 8}
 # Figure 3: TensorSignatures' of subjects' high-confidence sSNVs compared to HG002 false positives sSNVs 
@@ -312,12 +271,51 @@ grid.draw(p.table)
 ggsave('plots/fig3/ts_clusters.png', p.table)
 ```
 
+```{r fig4 box_plot}
+#Figure 4
+df4 <- read_csv(file.path("input_data", "fig4", "fig4.csv"))
+colnames(df4) <- gsub('...5', '_mean', colnames(df4))
+colnames(df4) <- gsub('...6', '_median', colnames(df4))
+df4 <- df4[-1, ]
+var_class_list <- c("IGR", "INTRON", "RNA", "SILENT", "MISSENSE")
+for_plot <- df4 %>%
+  filter(`34_variantClassification` %in% var_class_list) %>%
+  mutate(var_class = recode(str_to_title(`34_variantClassification`),
+                            "Rna" = "mRNA\nEncoding",
+                            "Intron" = "Intronic",
+                            "Igr" = "Intergenic"),
+         af_median = as.numeric(AF_median))
+
+# Order by median
+median_sorter <- for_plot %>%
+  group_by(var_class) %>%
+  summarize(af_median_median = median(af_median, na.rm = TRUE)) %>%
+  arrange(af_median_median) %>%
+  dplyr::select(var_class, af_median_median)
+
+for_plot <- for_plot %>%
+  mutate(var_class = factor(var_class, levels = as.list(median_sorter$var_class))) %>%
+  dplyr::select(var_class, af_median)
+
+fig4_bp <- ggplot(data = for_plot, aes(x = af_median, y = var_class)) +
+  geom_boxplot() +
+  geom_quasirandom(alpha = .2, size = 1) +
+  theme_classic() +
+  ylab("Variant Classification") +
+  xlab("Median Allele Frequency") +
+  xlim(c(0, max(for_plot$af_median)))
+fig4_bp
+
+ggsave('plots/fig4/median_boxplots.png', fig4_bp)
+```
+
+\newpage
 
 ```{r fig.width = 14, fig.height = 4}
-# Figure 4: COSMIC SBSs are individual specific
+# Figure 5: COSMIC SBSs are individual specific
 
-activities_df <- read_csv("./input_data/fig4/activities.csv")
-plotting_data <- read_csv("./input_data/fig4/data_for_tmb.csv")
+activities_df <- read_csv("./input_data/fig5/activities.csv")
+plotting_data <- read_csv("./input_data/fig5/data_for_tmb.csv")
 
 tmb_plot <- ggplot() + 
   geom_point(data = activities_df, mapping = aes(x = index, y = Mut_burden), size = 0.5) +
@@ -347,15 +345,15 @@ tmb_plot <- ggplot() +
             label = paste0("frac(", plotting_data$counts, ",", plotting_data$input_counts, ")"))) 
 
 tmb_plot
-ggsave('plots/fig4/sbs_tmb_plot.png', tmb_plot)
+ggsave('plots/fig5/sbs_tmb_plot.png', tmb_plot)
 ```
 
 \newpage
 
 ```{r, warning = FALSE}
-# Figure 5: Regression of corrected SNV counts vs age
+# Figure 6: Regression of corrected SNV counts vs age
 
-model_vals <- read_csv("input_data/fig5/age_lqmm_numtable.csv")
+model_vals <- read_csv("input_data/fig6/age_lqmm_numtable.csv")
 metric <- 'snv_count_adj3'
 agg_snv <- read_agg_data(new_wd)
 
@@ -374,13 +372,13 @@ snv_vs_age <- ggplot(agg_snv, aes_string(x = 'draw_age', y = metric)) +
   theme_classic()
 
 snv_vs_age
-ggsave('plots/fig5/snv_vs_age.png', snv_vs_age)
+ggsave('plots/fig6/snv_vs_age.png', snv_vs_age)
 ```
 
 
-```{r fig6_import_data}
-# Figure 6: Histograms of slopes from individual models
-dynamic_df_grp_melt <- read_csv(file.path("input_data", "fig6", "slopes_intercepts.csv"))
+```{r fig7_import_data}
+# Figure 7: Histograms of slopes from individual models
+dynamic_df_grp_melt <- read_csv(file.path("input_data", "fig7", "slopes_intercepts.csv"))
 #filter dynamic_df_grp_melt for only sbsXX_ratio columns
 for_plot <- dynamic_df_grp_melt %>%
   filter(grepl("SBS[[:digit:]]+_ratio", dynamic_df_grp_melt$label)) %>%
@@ -404,21 +402,21 @@ v_plot <- ggplot(data = for_plot, aes(x = slope, y = label_nice)) +
   theme(axis.text.x = element_text(angle = 45, hjust=1))
 v_plot
 
-ggsave('plots/fig6/violin_plot.png', v_plot)
+ggsave('plots/fig7/violin_plot.png', v_plot)
 ```
 
 \newpage
 
 ```{r fig6b_import_data}
-dynamic_df_grp_wide <- read_csv(file.path("input_data", "fig6", "dynamic_slopes_intercepts_wide.csv"))
-sbs1_med_slope = median(dynamic_df_grp_wide$SBS1_ratio_adj3_slope)
-sbs1_med_int = median(dynamic_df_grp_wide$SBS1_ratio_adj3_intercept)
-sbs5_med_slope = median(dynamic_df_grp_wide$SBS5_ratio_adj3_slope)
-sbs5_med_int = median(dynamic_df_grp_wide$SBS5_ratio_adj3_intercept)
-sbs18_med_slope = median(dynamic_df_grp_wide$SBS18_ratio_adj3_slope)
-sbs18_med_int = median(dynamic_df_grp_wide$SBS18_ratio_adj3_intercept)
-sbs90_med_slope = median(dynamic_df_grp_wide$SBS90_ratio_adj3_slope)
-sbs90_med_int = median(dynamic_df_grp_wide$SBS90_ratio_adj3_intercept)
+dynamic_df_grp_wide <- read_csv(file.path("input_data", "fig7", "dynamic_slopes_intercepts_wide.csv"))
+sbs1_mean_slope = mean(dynamic_df_grp_wide$SBS1_ratio_adj3_slope)
+sbs1_mean_int = mean(dynamic_df_grp_wide$SBS1_ratio_adj3_intercept)
+sbs5_mean_slope = mean(dynamic_df_grp_wide$SBS5_ratio_adj3_slope)
+sbs5_mean_int = mean(dynamic_df_grp_wide$SBS5_ratio_adj3_intercept)
+sbs18_mean_slope = mean(dynamic_df_grp_wide$SBS18_ratio_adj3_slope)
+sbs18_mean_int = mean(dynamic_df_grp_wide$SBS18_ratio_adj3_intercept)
+sbs90_mean_slope = mean(dynamic_df_grp_wide$SBS90_ratio_adj3_slope)
+sbs90_mean_int = mean(dynamic_df_grp_wide$SBS90_ratio_adj3_intercept)
 ```
 
 ```{r, fig6b_lin_plot, warning = FALSE}
@@ -429,12 +427,10 @@ names(chosen_sbs_plots) <- chosen_sbs
 chosen_sbs_plots
 ```
 
+![Figure S1: Filtering schema](~/state_manuscript_analyses/knitting_files/images/filtration_schema.png)
 
 
-![Figure S1: Filtering schema](knitting_files/filtration_schema.png)
-
-
-![Figure S2: Description of the workflpostow and processing times](knitting_files/workflow.png)
+![Figure S2: Description of the workflpostow and processing times](~/state_manuscript_analyses/knitting_files/images/workflow.png)
 
 
 ```{r}

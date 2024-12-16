@@ -5,9 +5,10 @@ Credits
 Development Lead
 ----------------
 
-* Xingyao Chen <xchen@eitm.org>
+* Xingyao Chen <xchen@emila.org>
 
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Abby Coleman <acoleman@emila.org>
+* Mukta Ubale <mubale@emila.org>

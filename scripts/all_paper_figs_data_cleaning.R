@@ -1,13 +1,11 @@
 #BEFORE YOU CAN RUN THIS YOU WILL NEED:
 #1) to set up a rclone remote to dropbox called "dropbox"
-
 #to see filepaths you may have to change, search "^"
 
 library(tidyverse)
 library(ggplot2)
 library(ggbeeswarm)
 library(patchwork)
-#library(kableExtra)
 library(viridis)
 library(cowplot)
 library(stringr)
@@ -19,24 +17,24 @@ library(lme4)
 library(readxl)
 library(purrr)
 
-new_wd <- file.path("~", "project", "STATE_analyses")
+# Working directory should be repo root folder (^)
+new_wd <- file.path("~", "project", "state_manuscript_analyses")
 setwd(new_wd)
 
-source(file.path("R", "all_paper_figs_functions.R"))
+source(file.path("scripts", "all_paper_figs_functions.R"))
 
 ######################################################
 #
 #        DATA PATHS
 #
 ######################################################
-#contrived samples from xchen directory
+# Contrived samples from xchen directory
 xchen_contrived <- file.path("/data/scratch/xchen/STATE_vcfs_f3_region_filtered/full_genome")
 
-#contrived samples from vaidhy's directory
-#these are the 100% contrived samples-- vaidhy had to reconfigure the filtering for these, which is why they are in his directory
+# Contrived samples from vaidhy directory
 vaidhy_contrived <- file.path("/data/scratch/vmahaganapathy/contrived")
 
-#xchen data for contrived snv metrics plot
+# Data for contrived snv metrics plot
 xchen_contrived_snv_metrics <- file.path("/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/contrived_snv_metrics.csv")
 
 # sbs cosmic fit data
@@ -44,12 +42,11 @@ SBS_fp <- file.path("input_data/fig3/SBS_false_positives.csv")
 SBS_filtered <- file.path("input_data/fig3/SBS_post_filtering.csv")
 SBS_subject <- file.path("input_data/fig3/SBS_pre_filtering.csv")
 
-#fig5 snvs
+# fig5 snvs
 fig5_snvs <- file.path("/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/input_data/fig5_joined_snv_clinical.csv")
 
 #demographics data for csv
 demo_redcap <- file.path("Redcap Cloud STATE", "STATE_Enrollment.csv")
-cohort_data <- file.path("STATE Draw Event Data", "STATE Draws - Deidentified_cohorts.xlsx")
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ######################################################
 #
@@ -63,22 +60,19 @@ samples <- c("EIBS-002GA_19226_1", "EIBS-002GB_19227_1", "EIBS-002GC_19228_1",
              "EIBS-002GC_19228_3", "EIBS-002GD_19229_4", "EIBS-002GB_19227_4",
              "EIBS-002GC_19228_4", "EIBS-002GD_19229_3")
 
-#search for filenames that contain these sample numbers in /data/scratch/xchen/STATE_vcfs_f3_region_filtered/full_genome directory
+# Search for files that contain specified sample IDs
 files0 <- list.files(xchen_contrived, full.names = TRUE)
-#sapply() loops through filenames in the directory to...
-#apply some(), which tells you if each individual filename has one of the contrived sample sample numbers in it
 files0 <- files0[sapply(files0, function(files) some(samples, function(x) grepl(x, files)))]
 files0 <- files0[!grepl(".idx", files0)]
 
-#make input data folder to store VCFs
+# Make input data folder to store VCFs
 if (!dir.exists(file.path("input_data", "fig1", "recovery_pct"))){
   dir.create(file.path("input_data", "fig1", "recovery_pct"))
 }
 
-#set the sample 100 file as
 samp100files <- list.files(vaidhy_contrived, full.names = TRUE, recursive = TRUE)
 samp100files <- samp100files[grepl("_germline.ann.germ.af.filtered3.vcf.gz", samp100files)]
-#copy it over and index
+
 for (i in 1:length(samp100files)) {
   system(paste("cp", samp100files[[i]], file.path("input_data", "fig1", "recovery_pct")))
   s100filename <- basename(samp100files[[i]])
@@ -86,20 +80,15 @@ for (i in 1:length(samp100files)) {
   samp100files[[i]] <- file.path("input_data", "fig1", "recovery_pct", s100filename)
 }
 
-#now get their intersection
+# Get intersection, compress, and copy ground truth vcf
 system(paste("bcftools isec -p", file.path("input_data", "fig1", "recovery_pct", "s100isec"), samp100files[[1]], samp100files[[2]]))
-#and use that as the ground truth
 gt_vcf <- file.path("input_data", "fig1", "recovery_pct", "s100isec", "0002.vcf")
-#compress
 system(paste("bgzip -f", gt_vcf))
 gt_vcf <- paste(gt_vcf, ".gz", sep = "")
-#copy gt_vcf over to another one
 system(paste("cp ", gt_vcf, "input_data/fig1/recovery_pct/s100isec/0002_copy.vcf.gz"))
 gt_vcf2 <- file.path("input_data/fig1/recovery_pct/s100isec/0002_copy.vcf.gz")
-#get index
 system(paste("bcftools index -f", gt_vcf))
 
-#make a dataframe to store your results
 results <- data.frame(sample = as.character(),
                       filename = as.character(),
                       sample_type = as.character(),
@@ -107,21 +96,18 @@ results <- data.frame(sample = as.character(),
                       len1 = as.numeric(),
                       len2 = as.numeric(),
                       len3 = as.numeric())
-#samp100 files are filtered differently
-#remove 100% purity samples from the main file directory
-#and add the ones that were filtered correctly
+
 files0 <- files0[!grepl("EIBS-002GA_19226", files0)]
 files <- c(files0, samp100files, gt_vcf2)
 
-#loop through files and get intersections with bt474.vcf
+# Iterate through files to get intersection with bt474.vcf
 for (file in files) {
   
-  #if the file is from one of the sample files, you won't need to copy, zip, etc it
   if (!grepl("EIBS-002GA_19226", file) & file != gt_vcf2) {
     system(paste("cp", file, file.path("input_data", "fig1", "recovery_pct")))
     filename <- basename(file)
     isecdir <- paste(strsplit(filename, "\\.")[[1]][[1]], "vs100", sep = "_")
-    #first, zip the file the way bcftools wants you to
+    # Zip the file using bcftools
     system(paste("bgzip -f", file.path("input_data", "fig1", "recovery_pct", filename)))
     zipfile <- file.path("input_data", "fig1", "recovery_pct", paste(filename, ".gz", sep = ""))
   } else if (file == gt_vcf2) {
@@ -132,46 +118,40 @@ for (file in files) {
     filename <- basename(file)
     zipfile <- file
   }
-  #change the name of the sample column
-  #next, index the file
+  
   system(paste("bcftools index -f", zipfile))
-  # #get the complement of this file with the bt474.vcf "ground truth" file
+  # Getting complement of this file using bt474.vcf "ground truth" file
   system(paste("bcftools isec -p", file.path("input_data", "fig1", "recovery_pct", isecdir), zipfile, gt_vcf))
   sff_strt <- regexpr("EIBS-[[:digit:]]{3}[[:alpha:]]{2}_[[:digit:]]{5}_[[:digit:]]", filename)[[1]]
   sff_end <- sff_strt + attr(regexpr("EIBS-[[:digit:]]{3}[[:alpha:]]{2}_[[:digit:]]{5}_[[:digit:]]", filename), "match.length") - 1
   sampfromfile <- substr(filename, sff_strt, sff_end)
-  sample_type <- samples_df[samples_df$`Fragmented DNA aliquot ID` == sampfromfile, "Contrived sample type"][[1]]
+  sample_type <- samples[samples == sampfromfile, "Contrived sample type"][[1]]
   if (file == gt_vcf2) {
     sample_type <- "100% intersection"
   }
-  #loop through the vcf files in the isecdir you just made
+
   vcfs <- list.files(file.path("input_data", "fig1", "recovery_pct", isecdir))
   vcfs <- sort(vcfs[grepl(".vcf", vcfs)])
   vcflens <- c()
   for (i in vcfs) {
-    # print(i)
     vcf_file <- file.path("input_data", "fig1", "recovery_pct", isecdir, i)
-    #use touch to throw results of bcftools view -H into a text file
     system("touch vcflens.txt")
     system(paste("bcftools view -H", vcf_file, "| wc -l >> vcflens.txt"))
-    #read text file into r
     vcflens[[length(vcflens) + 1]] <- as.numeric(read.delim("vcflens.txt", header = FALSE)[[1]])
     system("rm vcflens.txt")
   }
   
-  #throw those results, + filename, sample_type and sampfromfile into a dataframe row
   row <- c(sampfromfile, filename, sample_type, vcflens)
   names(row) <- names(results)
   results <- rbind(results, row)
   
 }
 
-#calculate f1 score to plot!
+# f1 Score Calculation
 results <- results %>%
-  #0002 = true positive (intersection between both)
   mutate(tp = len2,
-         #0000 = false positive (all the calls that we called in our sample that weren’t in ground truth)
-         # our sequence minus bt474
+         #0002 = true positive
+         #0000 = false positive
          fp = len0,
          fn = len1) %>%
   mutate(precision = tp / (tp + fp),
@@ -229,8 +209,8 @@ sig_mutsigs <- sig_mutsigs[-1] %>% pivot_longer(-'Sample.Names')
 other_mutsigs <- other_mutsigs[-1] %>% pivot_longer(-'Sample.Names') 
 
 # save data
-# write_csv(sig_mutsigs, file.path("input_data", "fig3", "sig_mutsigs.csv"))
-# write_csv(other_mutsigs, file.path("input_data", "fig3", "other_mutsigs.csv"))
+write_csv(sig_mutsigs, file.path("input_data", "fig3", "sig_mutsigs.csv"))
+write_csv(other_mutsigs, file.path("input_data", "fig3", "other_mutsigs.csv"))
 
 ############################################################
 #
@@ -251,12 +231,12 @@ write_csv(cat_mutsigs, file.path("input_data", "fig3", "cat_mutsigs.csv"))
 
 ############################################################
 #
-#        FIG 4: TMB PLOT
+#        FIG 5: TMB PLOT
 #
 ############################################################
 
-activities_df <- read_csv(file.path("input_data", "fig4", "activities.csv"))
-plotting_data <- read_csv(file.path("input_data", "fig4", "data_for_tmb.csv"))
+activities_df <- read_csv(file.path("input_data", "fig5", "activities.csv"))
+plotting_data <- read_csv(file.path("input_data", "fig5", "data_for_tmb.csv"))
 
 activities_df <- activities_df %>% group_by(Types) %>% arrange(Mut_burden, .by_group=TRUE)
 activities_df$index <- rep(c(1:length(activities_df$Types[activities_df$Types == 'SBS1'])), 40)
@@ -268,12 +248,12 @@ for (name in plotting_data$names) {
 }
 plotting_data$x_labs <- as.numeric(x_labs)
 
-write_csv(activities_df, file.path("input_data", "fig4", "activities.csv"))
-write_csv(plotting_data, file.path("input_data", "fig4", "data_for_tmb.csv"))
+write_csv(activities_df, file.path("input_data", "fig5", "activities.csv"))
+write_csv(plotting_data, file.path("input_data", "fig5", "data_for_tmb.csv"))
 
 ############################################################
 #
-#        FIG 5: LQMM REGRESSION PLOTS
+#        FIG 6: LQMM REGRESSION PLOTS
 #
 ############################################################
 
@@ -285,17 +265,17 @@ lqmm_age_coeff <- lqmm_age_coeff %>% rename('lqmm.p' = 'Pr(>|t|)', Std.Error = '
 lqmm_age_coeff <- lqmm_age_coeff[!is.na(lqmm_age_coeff[['lqmm.p']]), ] # drop null values
 
 # save
-if (!dir.exists(file.path("input_data", "fig5"))) {
-  dir.create(file.path("input_data", "fig5"))
+if (!dir.exists(file.path("input_data", "fig6"))) {
+  dir.create(file.path("input_data", "fig6"))
 }
-write_csv(lqmm_age_coeff, './input_data/fig5/lqmm_age_data.csv')
+write_csv(lqmm_age_coeff, './input_data/fig6/lqmm_age_data.csv')
 
 ## ANOVA SUMMARY
 anova_summary_age <- anova_for_age(new_wd)
 anova_summary_age <- anova_summary_age %>% rename('anova.p' = 'p-value')
 anova_summary_age <- anova_summary_age[!is.na(anova_summary_age[['anova.p']]), ] # drop NA p-values
 
-write_csv(anova_summary_age, file.path("input_data", "fig5", "anova_summary_age.csv"))
+write_csv(anova_summary_age, file.path("input_data", "fig6", "anova_summary_age.csv"))
 
 ## MAKE TABLE
 # separate intercept and slope data
@@ -310,7 +290,6 @@ make_table(intercepts, slopes, new_wd)
 #
 ############################################################
 system(paste("rclone copy 'dropbox:", demo_redcap, "' '", file.path("input_data", "demo"), "'", sep = ""))
-system(paste("rclone copy 'dropbox:", cohort_data, "' '", file.path("input_data", "cohorts"), "'", sep = ""))
 
 ppids <- c('9HZC16EL0', '9HZC17EM0', '9HZC17EMO', '9HZC17LGG', '9HZC18LFG',
            '9HZC18LEG', '9HZC18EMI', '9HZC19EI0', '9HZC19EL0', '9HZC19EJ0',
@@ -335,8 +314,7 @@ ppids <- c('9HZC16EL0', '9HZC17EM0', '9HZC17EMO', '9HZC17LGG', '9HZC18LFG',
            '9HHC13EL0', '9HHC13EM0', 'QIZC15LHG')
 
 #PPID, age, gender, cohort assignment, race, ethnicity as columns
-demo_df <- read_csv(file.path(".", "input_data", "demo", "STATE_Enrollment.csv"))
-# cohort_sheets <- readxl::excel_sheets(file.path(".", "input_data", "cohorts", "STATE Draws - Deidentified_cohorts.xlsx"))
+demo_df <- read_csv(file.path("input_data", "demo", "STATE_Enrollment.csv"))
 active <- read_excel(file.path(".", "input_data", "cohorts", "STATE Draws - Deidentified_cohorts.xlsx"), sheet = "Active")
 active_ppids <- active$`Project Participant IDs`
 past_cancer <- read_excel(file.path(".", "input_data", "cohorts", "STATE Draws - Deidentified_cohorts.xlsx"), sheet = "Past Cancer")
