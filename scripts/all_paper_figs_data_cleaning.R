@@ -28,14 +28,8 @@ source(file.path("scripts", "all_paper_figs_functions.R"))
 #        DATA PATHS
 #
 ######################################################
-# Contrived samples from xchen directory
-xchen_contrived <- file.path("/data/scratch/xchen/STATE_vcfs_f3_region_filtered/full_genome")
-
-# Contrived samples from vaidhy directory
-vaidhy_contrived <- file.path("/data/scratch/vmahaganapathy/contrived")
-
-# Data for contrived snv metrics plot
-xchen_contrived_snv_metrics <- file.path("/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/contrived_snv_metrics.csv")
+# Contrived samples, pull from zenodo and modify path accordingly
+contrived <- file.path("/data/scratch/xchen/contrived_vcfs_f3")
 
 # sbs cosmic fit data
 SBS_fp <- file.path("input_data/fig3/SBS_false_positives.csv")
@@ -61,7 +55,7 @@ samples <- c("EIBS-002GA_19226_1", "EIBS-002GB_19227_1", "EIBS-002GC_19228_1",
              "EIBS-002GC_19228_4", "EIBS-002GD_19229_3")
 
 # Search for files that contain specified sample IDs
-files0 <- list.files(xchen_contrived, full.names = TRUE)
+files0 <- list.files(contrived, full.names = TRUE)
 files0 <- files0[sapply(files0, function(files) some(samples, function(x) grepl(x, files)))]
 files0 <- files0[!grepl(".idx", files0)]
 
@@ -70,7 +64,7 @@ if (!dir.exists(file.path("input_data", "fig1", "recovery_pct"))){
   dir.create(file.path("input_data", "fig1", "recovery_pct"))
 }
 
-samp100files <- list.files(vaidhy_contrived, full.names = TRUE, recursive = TRUE)
+samp100files <- list.files(contrived, full.names = TRUE, recursive = TRUE)
 samp100files <- samp100files[grepl("_germline.ann.germ.af.filtered3.vcf.gz", samp100files)]
 
 for (i in 1:length(samp100files)) {
@@ -165,18 +159,6 @@ results <- results %>%
          sample_purity = as.numeric(str_remove(str_extract(sample_type, "[[:digit:]]+%"), "%")))
 
 write_rds(results, file.path("input_data", "fig1", "recovery_pct", "isec_results_vs100sample.rds"))
-
-######################################################
-#
-#        CONTRIVED SNV METRICS
-#
-######################################################
-
-if (!dir.exists(file.path("input_data", "fig1", "recovery_figs"))){
-  dir.create(file.path("input_data", "fig1", "recovery_figs"))
-}
-system(paste("cp '", xchen_contrived_snv_metrics, "' '", file.path("input_data", "fig1", "recovery_figs", "contrived_snv_metrics.csv"), "'", sep = ""))
-
 
 ########################################################
 #
