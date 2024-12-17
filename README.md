@@ -12,3 +12,8 @@ Script                                     | Input                              
 scripts/state_manuscript_data_analysis.ipy |                                             |
 scripts/all_paper_figs_data_cleaning.R     | output from state_manuscript_data_analysis, |csvs for plotting
 scripts/all_paper_figs.Rmd                 | output from all_paper_figs_data_cleaning    | all figures for manuscript
+
+
+# ClairS workflows
+
+Nextflow modules and workflows that implements and adapts ClairS (Zheng et. al., 2023) for extracting sSNVs with no normal tissue reference. 
