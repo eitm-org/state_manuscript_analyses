@@ -2,7 +2,7 @@
 title: "STATE Paper Figures"
 output:
   word_document:
-    reference_docx: ./knitting_files/word_template.docx
+    reference_docx: ./scripts/word_template.docx
   pdf_document: default
 date: "`r Sys.Date()`"
 ---
