@@ -164,6 +164,17 @@ cython_debug/
 input_data/
 plots/
 all_paper_figs_files/
+HG002_fully_resolved/
+STATE_HG002_mosdepth/
+STATE_HG002_vcfs/
+workflow_results/
+STATE_vcfs_f1/
+STATE_vcfs_f3/
+STATE_vcfs_f1_region_filtered/
+STATE_vcfs_f3_region_filtered/
+bedfiles/
+noisy_coverage_regions/
 
 #Rproject
 *.Rproj
+
