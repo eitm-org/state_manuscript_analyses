@@ -85,9 +85,6 @@ dist: clean
 install: clean
 	python setup.py install
 
-dataflow-venv:
-	python3.6 -m venv dataflow_venv
-
 venv:
 	python3 -m venv venv
 
@@ -100,19 +97,3 @@ requirements-dev: requirements requirements/prod.txt requirements/dev.txt
 	pip install --upgrade pip
 	pip install wheel
 	pip install -r requirements/dev.txt
-
-requirements-dataflow: dataflow_venv requirements/dataflow.txt
-	dataflow_venv/bin/pip install --upgrade pip
-	dataflow_venv/bin/pip install wheel
-	dataflow_venv/bin/pip install -r requirements/dataflow.txt
-
-dataflow-archive: requirements/dataflow.txt dataflow-venv requirements-dataflow
-	mkdir python
-	cp -r dataflow_venv/lib python/lib
-	cp -r dataflow_venv/bin python/bin
-	rm -fr python/bin/pip*
-	rm -fr python/bin/python*
-	rm -fr python/bin/activate*
-	cp -r /opt/dataflow/java java
-	zip -r archive.zip python java
-	rm -rf python java
