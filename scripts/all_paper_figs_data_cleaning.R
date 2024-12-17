@@ -35,12 +35,6 @@ contrived <- file.path("/data/scratch/xchen/contrived_vcfs_f3")
 SBS_fp <- file.path("input_data/fig3/SBS_false_positives.csv")
 SBS_filtered <- file.path("input_data/fig3/SBS_post_filtering.csv")
 SBS_subject <- file.path("input_data/fig3/SBS_pre_filtering.csv")
-
-# fig5 snvs
-fig5_snvs <- file.path("/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/input_data/fig5_joined_snv_clinical.csv")
-
-#demographics data for csv
-demo_redcap <- file.path("Redcap Cloud STATE", "STATE_Enrollment.csv")
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ######################################################
 #
