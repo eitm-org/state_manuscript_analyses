@@ -168,6 +168,7 @@ HG002_fully_resolved/
 STATE_HG002_mosdepth/
 STATE_HG002_vcfs/
 workflow_results/
+STATE_mosdepth/
 STATE_vcfs_f1/
 STATE_vcfs_f3/
 STATE_vcfs_f1_region_filtered/
