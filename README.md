@@ -14,9 +14,6 @@ scripts/all_paper_figs_data_cleaning.R     | output from state_manuscript_data_a
 scripts/all_paper_figs.Rmd                 | output from all_paper_figs_data_cleaning    | all figures for manuscript
 
 
-# ClairS workflows
-
-Nextflow modules and workflows that implement and adapt [ClairS](https://github.com/HKU-BAL/ClairS) (Zheng et. al., 2023) for extracting sSNVs for ONT long-read sequencing. 
 
 # Post-processing pipeline
 ## Installation
