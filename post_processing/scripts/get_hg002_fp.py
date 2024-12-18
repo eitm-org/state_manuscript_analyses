@@ -18,6 +18,6 @@ def main():
         except subprocess.CalledProcessError as e:
             # error ino
             print(f"Error: {e.output.decode('utf-8')}")
-        print(f'Output path: {os.path.join(vcf_dir, 'fp')}')
+        print(f'Output path: {os.path.join(vcf_dir, "fp")}')
 if __name__ == "__main__":
     main()
