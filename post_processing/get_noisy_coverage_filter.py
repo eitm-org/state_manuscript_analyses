@@ -8,13 +8,13 @@ from constants import flat_results_dir
 
 class RangeDict(dict):
     def __getitem__(self, item):
-        if not isinstance(item, range): # or xrange in Python 2
+        if not isinstance(item, range):
             for key in self:
                 if item in key:
                     return self[key]
             raise KeyError(item)
         else:
-            return super().__getitem__(item) # or super(RangeDict, self) for Python 2
+            return super().__getitem__(item)
 
 def get_noisy_coverage_bedfile(mosdepth_file):
     df = pd.read_csv(mosdepth_file, compression='gzip', sep='\t', header=None, names = ['chr', 'start', 'end', 'depth'])

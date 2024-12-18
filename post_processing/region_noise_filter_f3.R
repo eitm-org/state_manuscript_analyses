@@ -1,12 +1,37 @@
-library(katdetectr)
-library(VariantAnnotation)
-library(maftools)
-library(Gmisc) 
-library(karyoploteR)
-library(data.table)
-library(ggplot2)
-library(viridis)
-library(reticulate)
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+if(!require(VariantAnnotation)){
+    BiocManager::install("VariantAnnotation")
+    library(VariantAnnotation)
+}
+
+if(!require(karyoploteR)){
+     BiocManager::install("karyoploteR")
+    library(karyoploteR)
+}
+
+if(!require(data.table)){
+    install.packages("data.table")
+    library(data.table)
+}
+
+if(!require(maftools)){
+     BiocManager::install("maftools")
+    library(maftools)
+}
+
+if(!require(Gmisc)){
+    install.packages("Gmisc")
+    library(Gmisc)
+}
+
+if(!require(reticulate)){
+    install.packages("reticulate")
+    library(reticulate)
+}
+
 
 source_python('constants.py')
 
@@ -82,7 +107,6 @@ for(vcf_file in eibs_vcf_files){
   print(eibs_id)
   output_vcf_path  = paste0(region_filtered_vcf_path, '/', vcf_name)
   
-  # if(eibs_id == 'EIBS-001US_03154_12_1_2_20221104'){
   vcf <- readVcf(vcf_file)
   region_to_subtract = findOverlaps(vcf@rowRanges, subtract_ranges)
   vcf_region_filterd = vcf[-region_to_subtract@from]

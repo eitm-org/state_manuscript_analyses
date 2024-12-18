@@ -1,49 +1,61 @@
+import os
 import subprocess
 import sys
 
+from constants import flat_results_dir
 
-def main():
+
+def refit_hg002_fp():
+    PROCESS_VCF_CMD = """Rscript tensig/processVcf.R {} {}\n"""
+    TENSIG_PREP_CMD = """tensorsignatures prep {} {}\n"""
+    TENSIG_REFIT_CMD = """tensorsignatures refit -n {} {}\n"""
+    output_path = 'tensorsignatures_data'
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    base_path = os.path.join(flat_results_dir, f'STATE_HG002_vcfs/fp')
+    pattern = '*.vcf$'
+    process_vcf_command = PROCESS_VCF_CMD.format(base_path, pattern + ' FALSE' + f' {output_path}/hg002_fp')
+    tensig_prep_command = TENSIG_PREP_CMD.format(f'{output_path}/hg002_fp.h5', f'{output_path}/tsdata_hg002_fp.h5')
+    tensig_refit_command = TENSIG_REFIT_CMD.format(f'{output_path}/tsdata_hg002_fp.h5', f'{output_path}/refit_hg002_fp.pkl')
+    try:
+        print(process_vcf_command)
+        result = subprocess.check_output(process_vcf_command, shell=True, stderr=subprocess.STDOUT)
+        print(result.decode('utf-8'))
+    except subprocess.CalledProcessError as e:
+        # error ino
+        print(f"Error: {e.output.decode('utf-8')}")
+    try:
+        print(tensig_prep_command)
+        result = subprocess.check_output(tensig_prep_command, shell=True, stderr=subprocess.STDOUT)
+        print(result.decode('utf-8'))
+    except subprocess.CalledProcessError as e:
+        # error ino
+        print(f"Error: {e.output.decode('utf-8')}")
+    try:
+        print(tensig_refit_command)
+        result = subprocess.check_output(tensig_refit_command, shell=True, stderr=subprocess.STDOUT)
+        print(result.decode('utf-8'))
+    except subprocess.CalledProcessError as e:
+        # error ino
+        print(f"Error: {e.output.decode('utf-8')}")
+
+
+def refit_subject():
     latest_run = str(sys.argv[1])
-    PROCESS_VCF_CMD = """Rscript /home/xchen@okta-oci.eitm.org/projects/tensorsignatures/tensig/processVcf.R {} {}\n"""
-    TENSIG_PREP_CMD = """/home/xchen@okta-oci.eitm.org/projects/tensorsignatures/venv/bin/tensorsignatures prep {} {}\n"""
-    TENSIG_REFIT_CMD = """/home/xchen@okta-oci.eitm.org/projects/tensorsignatures/venv/bin/tensorsignatures refit -n {} {}\n"""
-    output_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data'
+    PROCESS_VCF_CMD = """Rscript tensig/processVcf.R {} {}\n"""
+    TENSIG_PREP_CMD = """tensorsignatures prep {} {}\n"""
+    TENSIG_REFIT_CMD = """tensorsignatures refit -n {} {}\n"""
+    output_path = 'tensorsignatures_data'
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
 
     filternums = ['f1', 'f3']
     for filternum in filternums:
-        base_path = f'/data/scratch/xchen/STATE_vcfs_{filternum}_region_filtered_funcotated'
-        # pattern = '*.chrom.vcf$'
-        # process_vcf_command = PROCESS_VCF_CMD.format(base_path, pattern + f' {output_path}/state002_{latest_run}_{filternum}_chrom')
-        # try:
-        #     print(process_vcf_command)
-        #     result = subprocess.check_output(process_vcf_command, shell=True, stderr=subprocess.STDOUT)
-        #     print(result.decode('utf-8'))
-        # except subprocess.CalledProcessError as e:
-        #     # error ino
-        #     print(f"Error: {e.output.decode('utf-8')}")        
-        # for chunknum in ['chunk1', 'chunk2', 'chunk3']:
-        #     tensig_prep_command = TENSIG_PREP_CMD.format(f'{output_path}/state002_{latest_run}_{filternum}_chrom_{chunknum}.h5', f'{output_path}/tsdata_state002_{latest_run}_{filternum}_chrom_{chunknum}.h5')
-        #     tensig_refit_command = TENSIG_REFIT_CMD.format(f'{output_path}/tsdata_state002_{latest_run}_{filternum}_chrom_{chunknum}.h5', f'{output_path}/refit_state002_{latest_run}_{filternum}_chrom_{chunknum}.pkl')
-        #     print(tensig_prep_command)
-        #     print(tensig_refit_command)
-        #     try:
-        #         result = subprocess.check_output(tensig_prep_command, shell=True, stderr=subprocess.STDOUT)
-        #         print(result.decode('utf-8'))
-        #     except subprocess.CalledProcessError as e:
-        #         # error ino
-        #         print(f"Error: {e.output.decode('utf-8')}")
-        #     try:
-        #         result = subprocess.check_output(tensig_refit_command, shell=True, stderr=subprocess.STDOUT)
-        #         print(result.decode('utf-8'))
-        #     except subprocess.CalledProcessError as e:
-        #         # error ino
-        #         print(f"Error: {e.output.decode('utf-8')}")
-        
-
+        base_path = os.path.join(flat_results_dir, f'STATE_vcfs_{filternum}_region_filtered')
         pattern = '*.filtered[1,3].vcf$'
-        process_vcf_command = PROCESS_VCF_CMD.format(base_path, pattern + f' {output_path}/state002_{latest_run}_{filternum}')
-        tensig_prep_command = TENSIG_PREP_CMD.format(f'{output_path}/state002_{latest_run}_{filternum}.h5', f'{output_path}/tsdata_state002_{latest_run}_{filternum}.h5')
-        tensig_refit_command = TENSIG_REFIT_CMD.format(f'{output_path}/tsdata_state002_{latest_run}_{filternum}.h5', f'{output_path}/refit_state002_{latest_run}_{filternum}.pkl')
+        process_vcf_command = PROCESS_VCF_CMD.format(base_path, pattern + ' FALSE' +  f' {output_path}/state{latest_run}_{filternum}')
+        tensig_prep_command = TENSIG_PREP_CMD.format(f'{output_path}/state{latest_run}_{filternum}.h5', f'{output_path}/tsdata_state{latest_run}_{filternum}.h5')
+        tensig_refit_command = TENSIG_REFIT_CMD.format(f'{output_path}/tsdata_state{latest_run}_{filternum}.h5', f'{output_path}/refit_state{latest_run}_{filternum}.pkl')
         try:
             print(process_vcf_command)
             result = subprocess.check_output(process_vcf_command, shell=True, stderr=subprocess.STDOUT)
@@ -52,8 +64,8 @@ def main():
             # error ino
             print(f"Error: {e.output.decode('utf-8')}")
         for chunknum in ['chunk1', 'chunk2', 'chunk3']:
-            tensig_prep_command = TENSIG_PREP_CMD.format(f'{output_path}/state002_{latest_run}_{filternum}_{chunknum}.h5', f'{output_path}/tsdata_state002_{latest_run}_{filternum}_{chunknum}.h5')
-            tensig_refit_command = TENSIG_REFIT_CMD.format(f'{output_path}/tsdata_state002_{latest_run}_{filternum}_{chunknum}.h5', f'{output_path}/refit_state002_{latest_run}_{filternum}_{chunknum}.pkl')
+            tensig_prep_command = TENSIG_PREP_CMD.format(f'{output_path}/state{latest_run}_{filternum}_{chunknum}.h5', f'{output_path}/tsdata_state{latest_run}_{filternum}_{chunknum}.h5')
+            tensig_refit_command = TENSIG_REFIT_CMD.format(f'{output_path}/tsdata_state{latest_run}_{filternum}_{chunknum}.h5', f'{output_path}/refit_state{latest_run}_{filternum}_{chunknum}.pkl')
             try:
                 print(tensig_prep_command)
                 result = subprocess.check_output(tensig_prep_command, shell=True, stderr=subprocess.STDOUT)
@@ -70,7 +82,8 @@ def main():
                 print(f"Error: {e.output.decode('utf-8')}")
 
 if __name__ == "__main__":
-    main()
+    refit_hg002_fp()
+    refit_subject()
 
 
 
