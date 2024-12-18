@@ -1,5 +1,5 @@
+tensorsignatures @ git+https://github.com/eitm-org/tensorsignatures.git
 alive-progress==3.1.5
 apiwrapper
 SigProfilerAssignment
-scikit-learn==1.5.1
-pandas
+cyvcf2
