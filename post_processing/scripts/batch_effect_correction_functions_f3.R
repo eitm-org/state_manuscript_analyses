@@ -27,10 +27,10 @@ data <- data %>%
     EIBS = Sample
   )
 
+data = data[data$Sample_type == 'subject',]
 data = data %>% filter(if_all(Median_Coverage, ~ . >= 20))
 data$LSK = str_split_fixed(data$Ligation_Sequencing_Kit_Batch., " ", 2)[,1]
 data = distinct(data)
-
 merged_qc_global <- merge(global, data, by = "EIBS") 
 
 ## Adjust All Columns -------
@@ -55,7 +55,6 @@ adjust_all_batch <- function(data, keyword, batch, confounder, saveFile) {
     if (grepl(keyword, col) && !grepl("_min_", col) && !grepl("_max_", col) && +
         !grepl("read_count", col) && !grepl("passed", col) && !startsWith(col, "count_"))
     {
-      print(col)
       
       temp <- try({
         data %>%
@@ -69,7 +68,6 @@ adjust_all_batch <- function(data, keyword, batch, confounder, saveFile) {
       }
       
       adjusted_column <- setdiff(names(temp), names(data))
-      print(adjusted_column)
       
       # only keep the final result
       if (length(adjusted_column) > 1) {

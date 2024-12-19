@@ -47,9 +47,6 @@ def main():
         aggregate_funcotator(funcotator_global_path, funcotator_chrom_path, funcotator_Mbps_path, VCF_BASE_DIR)
         aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR)
         aggregate_global(mutsig_global_path_prefix, funcotator_global_path, vep_global_path, cosmic_global_path, merged_global_patient_path, VCF_BASE_DIR)
-        aggregate_chrom(funcotator_chrom_path, vep_chrom_path, merged_chrom_patient_path, VCF_BASE_DIR)
-        aggregate_Mbps(funcotator_Mbps_path, vep_Mbps_path, merged_Mbps_patient_path)
-
 
 
 def aggregate_funcotator(funcotator_global_path, funcotator_chrom_path, funcotator_Mbps_path, VCF_BASE_DIR):
@@ -129,12 +126,9 @@ def aggregate_global(
 
 
 def aggregate_chrom(
-        mutsig_chrom_path,
         funcotator_chrom_path,
-        kataegis_chrom_path,
         vep_chrom_path,
         merged_chrom_patient_path,
-        VCF_BASE_DIR
 ):
     funcotator_chr = pd.read_csv(funcotator_chrom_path)
     vep_chrom = pd.read_csv(vep_chrom_path)
