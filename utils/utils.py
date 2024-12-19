@@ -131,46 +131,25 @@ def get_select_draw_ids():
     return select_draw_ids
 
 def get_draw_mapping():
+    #read tables
+    subjects = pd.read_csv(subjects)
+    msp = pd.read_csv(manuscript_sample_prep_file)
     mapping_path = '/home/xchen@okta-oci.eitm.org/dropbox/STATE_Draw_Event_Data/STATE Draws - Deidentified_cohorts.xlsx'
-    draw_mapping = {}
-    cohort_sheets = ['No Cancer', 'Past Cancer', 'Active']
-    for sheet in cohort_sheets:
-        draw_table = pd.read_excel(mapping_path, sheet_name=sheet)
-        for i, row in draw_table.iterrows():
-            
-            patient_id = row['Project Participant IDs']
-            age = row['Age']
-            baseline_eid = row['Baseline']
-            draw2_eid = row['Draw 2']
-            draw3_eid = row['Draw 3']
-            draw4_eid = row['Draw 4']
-            draw5_eid = row['Draw 5']
-            draw6_eid = row['Draw 6']
-            draw1_mon = 0
-            draw2_mon = row['Month since Baseline \n(Draw 2)']
-            draw3_mon = row['Month since Baseline \n(Draw 3)']
-            draw4_mon = row['Month since Baseline \n(Draw 4)']
-            draw5_mon = row['Month since Baseline \n(Draw 5)']
-            draw6_mon = row['Month since Baseline \n(Draw 6)']
-            # cohort = COHORT_MAPPING[row['Cohorts']]
-            cohort = CLINICAL_COHORT_MAPPING[sheet]
-            draw_mapping[baseline_eid] = (patient_id, BASELINE, cohort, draw1_mon, age)
-            draw_mapping[baseline_eid] = (patient_id, BASELINE, cohort, draw1_mon, age)
-            if draw2_eid is not np.nan:
-                draw_mapping[draw2_eid] = (patient_id, DRAW2, cohort, draw2_mon, age)
-                draw_mapping[draw2_eid] = (patient_id, DRAW2, cohort, draw2_mon, age)
-            if draw3_eid is not np.nan:
-                draw_mapping[draw3_eid] = (patient_id, DRAW3, cohort, draw3_mon, age)
-                draw_mapping[draw3_eid] = (patient_id, DRAW3, cohort, draw3_mon, age)
-            if draw4_eid is not np.nan:
-                draw_mapping[draw4_eid] = (patient_id, DRAW4, cohort, draw4_mon, age)
-                draw_mapping[draw4_eid] = (patient_id, DRAW4, cohort, draw4_mon, age)
-            if draw5_eid is not np.nan:
-                draw_mapping[draw5_eid] = (patient_id, DRAW5, cohort, draw5_mon, age)
-                draw_mapping[draw5_eid] = (patient_id, DRAW5, cohort, draw5_mon, age)
-            if draw6_eid is not np.nan:
-                draw_mapping[draw6_eid] = (patient_id, DRAW6, cohort, draw6_mon, age)
-                draw_mapping[draw6_eid] = (patient_id, DRAW6, cohort, draw6_mon, age)
+    #filter out HG002 columns (they have Project_Participant_ID = NaN)
+    msp = msp[pd.notnull(msp['Project_Participant_ID'])]
+    #merge age and cohort into the data table
+    all_df = msp.merge(subjects, how = 'outer', left_on = 'Project_Participant_ID', right_on = 'Project_Participant_ID')
+    #truncate Sample to EIBS-{*}{5}
+    all_df['Sample'] = all_df['Sample'].str.slice(0, 10)
+    #add visit number column
+    all_df = all_df.sort_values(by = ['Project_Participant_ID', 'Month_since_baseline_draw'])
+    all_df['drawnum'] = all_df.groupby(['Project_Participant_ID']).cumcount()
+    #change column order
+    all_df = all_df[['Sample', 'Project_Participant_ID', 'drawnum', 'cohort', 'Month_since_baseline_draw', 'STATE_Age_Calculated']]
+    #make it into a dictionary
+    all_df = all_df.to_numpy()
+    # all_df = all_df.to_dict('series')
+    all_df = dict((x[0], (x[1], x[2], x[3], x[4], x[5])) for x in all_df[1:])
     return draw_mapping
 
 
