@@ -33,7 +33,7 @@ if(!require(reticulate)){
 }
 
 
-source_python('constants.py')
+source_python('scripts/constants.py')
 
 eibs_vcf_path = file.path(flat_results_dir, '/STATE_vcfs_f3/full_genome')
 region_filtered_vcf_path =  file.path(flat_results_dir, 'STATE_vcfs_f3_region_filtered/full_genome')

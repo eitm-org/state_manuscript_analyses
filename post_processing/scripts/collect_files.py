@@ -52,15 +52,15 @@ def main():
         if not os.path.islink(vcf_symlink_path): 
             os.symlink(vcf, vcf_symlink_path)
 
-    eibs_vcf = glob.glob(os.path.join(workflow_results_dir, '*', 'results', 'variant_calling/clairs', 'EIBS*', '*.filtered1.vcf.gz'))
-    if not os.path.exists(os.path.join(flat_results_dir, 'STATE_vcfs_f1/full_genome')): 
-        os.makedirs(os.path.join(flat_results_dir, 'STATE_vcfs_f1/full_genome'))
-    for vcf in eibs_vcf:
-        file_name = vcf.split('/')[-1]
-        vcf = os.path.abspath(vcf)
-        vcf_symlink_path = os.path.join(flat_results_dir, 'STATE_vcfs_f1/full_genome', file_name)
-        if not os.path.islink(vcf_symlink_path): 
-            os.symlink(vcf, vcf_symlink_path)
+    # eibs_vcf = glob.glob(os.path.join(workflow_results_dir, '*', 'results', 'variant_calling/clairs', 'EIBS*', '*.filtered1.vcf.gz'))
+    # if not os.path.exists(os.path.join(flat_results_dir, 'STATE_vcfs_f1/full_genome')): 
+    #     os.makedirs(os.path.join(flat_results_dir, 'STATE_vcfs_f1/full_genome'))
+    # for vcf in eibs_vcf:
+    #     file_name = vcf.split('/')[-1]
+    #     vcf = os.path.abspath(vcf)
+    #     vcf_symlink_path = os.path.join(flat_results_dir, 'STATE_vcfs_f1/full_genome', file_name)
+    #     if not os.path.islink(vcf_symlink_path): 
+    #         os.symlink(vcf, vcf_symlink_path)
 
 if __name__ == "__main__":
     main()

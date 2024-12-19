@@ -1,8 +1,12 @@
 library(rtracklayer)
 library(Biostrings)
+if(!require(reticulate)){
+    install.packages("reticulate")
+    library(reticulate)
+}
+source_python('scripts/constants.py')
 
-genomePath <- "genome.fa.gz"
-genomePath <- "/data/xchen/refs/GRCh38/GRCh38.primary_assembly.genome_X.fa" #"genome.fa.gz" # path to the reference genome
+genomePath <-  file.path(refs_dir, "GRCh38/GRCh38.primary_assembly.genome_X.fa") #"genome.fa.gz" # path to the reference genome
 # Set constants
 ORI <- c("+", "-", "*")
 NUC <- c("A", "C", "G", "T")
