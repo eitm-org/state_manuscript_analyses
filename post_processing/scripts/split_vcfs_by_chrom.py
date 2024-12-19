@@ -4,8 +4,7 @@ import os
 
 from cyvcf2 import VCF, Writer
 
-from STATE_analyses.post_processing.utils import ALL_CHRS
-
+ALL_CHRS = [f'chr{i}' for i in range(1, 23)] + ['chrX', 'chrY']
 
 def split_vcf_by_chrom(input_vcf_path, output_vcf_paths):
     vcf = VCF(input_vcf_path)
