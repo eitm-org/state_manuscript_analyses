@@ -32,14 +32,6 @@ COHORT_PC = 'past_cancer'
 COHORT_AC = 'active_cancer'
 CLINICAL_COHORT_MAPPING = {'No Cancer': COHORT_NC, 'Past Cancer': COHORT_PC, 'Active': COHORT_AC}
 
-
-aggregate_snv_Mbps_f3_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_Mbps_f3.csv'
-aggregate_snv_chrom_f3_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_chrom_f3.csv'
-aggregate_snv_global_f3_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_global_f3.csv'
-
-aggregate_snv_Mbps_f1_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_Mbps_f1.csv'
-aggregate_snv_chrom_f1_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_chrom_f1.csv'
-aggregate_snv_global_f1_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_global_f1.csv'
 sbs_artifacts = ['SBS27', 'SBS43', 'SBS45', 'SBS46', 'SBS47', 'SBS48', 'SBS49', 'SBS50', 'SBS51', 'SBS52', 'SBS53', 'SBS54', 'SBS55', 'SBS56', 'SBS57', 'SBS58', 'SBS59', 'SBS60', 'SBS95']
 
 def derive_final_metrics_uncorrrected(data, error_model=False):
@@ -109,9 +101,6 @@ def read_agg_snv(path):
     return eid_to_patient_cohort(agg_snv).reset_index()
 
 def join_clinical(agg_snv):
-    # rcc_path = '/home/xchen@okta-oci.eitm.org/dropbox/Redcap_Cloud_STATE/rcc_user_records_20240124_0923/STATE_Enrollment/STATE_Enrollment.csv'
-    # rcc = pd.read_csv(rcc_path)
-    # agg_snv = agg_snv.merge(rcc, left_on='draw_id', right_on='participantId', how='left')
     agg_snv['age_high'] = agg_snv.draw_age >= 65
     htx_path = '/home/xchen@okta-oci.eitm.org/dropbox/Redcap_Cloud_STATE/archive/rcc_user_records_20240603_0922/STATE_History_and_Diagnosis/STATE_History.csv'
     htx = pd.read_csv(htx_path)[['STATE_Alc_Consumption', 'STATE_Tobacco_History', 'participantId']]
@@ -288,19 +277,19 @@ def mutsig_global_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
     patient_ids = [vcf_path.split('/')[-1].split('_vs_')[0] for vcf_path in input_vcf_paths2]
     i = 0
     exposure_concat_chunks = []
-    for chunk in ['chunk1', 'chunk2', 'chunk3']:
-        mutsig_path = f'{mutsig_path_prefix}_{chunk}.pkl'
-        init = ts.load_dump(mutsig_path)
-        rows = [f'ts{n+1:02}' for n in range(init.rank)]
-        ids = patient_ids[i: i + init.sample_indices.shape[0]] #+ fp_ids + fp_pileup_ids
-        exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
-        exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
-        exposure_df = exposure_df.add_prefix('mutsig_count_')
-        exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
-        exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
-        exposure_concat['EIBS'] = exposure_concat.index
-        exposure_concat_chunks.append(exposure_concat)
-        i += init.sample_indices.shape[0]
+    #for chunk in ['chunk1', 'chunk2', 'chunk3']:
+    mutsig_path = f'{mutsig_path_prefix}.pkl'
+    init = ts.load_dump(mutsig_path)
+    rows = [f'ts{n+1:02}' for n in range(init.rank)]
+    ids = patient_ids[i: i + init.sample_indices.shape[0]] #+ fp_ids + fp_pileup_ids
+    exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
+    exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
+    exposure_df = exposure_df.add_prefix('mutsig_count_')
+    exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
+    exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
+    exposure_concat['EIBS'] = exposure_concat.index
+    exposure_concat_chunks.append(exposure_concat)
+    i += init.sample_indices.shape[0]
     return pd.concat(exposure_concat_chunks, axis=0)
 
 
