@@ -23,7 +23,6 @@ def aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR):
 
 
 def main():
-    latest_run = str(sys.argv[1])
     filternums = ['f3']
     for filternum in filternums:
         merged_global_patient_path = f'aggregate_data/aggregate_snv_patient_global_{filternum}.csv'
@@ -36,16 +35,15 @@ def main():
         funcotator_chrom_path = f'aggregate_data/aggregate_funcotator_patient_chrom_{filternum}.csv'
         funcotator_Mbps_path = f'aggregate_data/aggregate_funcotator_patient_Mbps_{filternum}.csv'
 
-        mutsig_global_path_prefix = f'tensorsignatures_data/refit_state{latest_run}_{filternum}'
-        
+        mutsig_global_path_prefix = f'tensorsignatures_data/refit_state_{filternum}'
         cosmic_global_path = f'cosmics_sig_data/mut_sig_assignment_solution_activities_{filternum}.csv'
         
         vep_global_path = f'aggregate_data/aggregate_vep_global_{filternum}.csv'
         vep_chrom_path = f'aggregate_data/aggregate_vep_chrom_{filternum}.csv'
         vep_Mbps_path = f'aggregate_data/aggregate_vep_Mbps_{filternum}.csv'
 
-        aggregate_funcotator(funcotator_global_path, funcotator_chrom_path, funcotator_Mbps_path, VCF_BASE_DIR)
-        aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR)
+        # aggregate_funcotator(funcotator_global_path, funcotator_chrom_path, funcotator_Mbps_path, VCF_BASE_DIR)
+        # aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR)
         aggregate_global(mutsig_global_path_prefix, funcotator_global_path, vep_global_path, cosmic_global_path, merged_global_patient_path, VCF_BASE_DIR)
 
 

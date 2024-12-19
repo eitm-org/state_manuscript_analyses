@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import warnings
 
+from constants import refs_dir
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 LOCATION_INDEX = 1
@@ -115,7 +116,7 @@ def aggregate_vep_chrom(vep_df):
     return vep_df_agg.join(vep_df_cont_agg)
 
 def aggregate_vep_Mbps(vep_df):
-    hg38_bed_path = '/data/xchen/refs/GRCh38/GRCh38.primary_assembly.genome_X_chr.bed'
+    hg38_bed_path = os.path.join(refs_dir, 'GRCh38/GRCh38.primary_assembly.genome_X_chr.bed')
     hg38_bed = pd.read_csv(hg38_bed_path, sep='\t', header=None)
     hg38_bed.columns = ['chr', 'start', 'end']
     vep_df_cp = vep_df.copy()
