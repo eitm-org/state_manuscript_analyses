@@ -102,17 +102,6 @@ def read_agg_snv(path, subjects, manuscript_sample_prep_file):
     draw_mapping = get_draw_mapping(subjects, manuscript_sample_prep_file)
     return eid_to_patient_cohort(agg_snv, draw_mapping).reset_index()
 
-def join_clinical(agg_snv):
-    agg_snv['age_high'] = agg_snv.draw_age >= 65
-    htx_path = '/home/xchen@okta-oci.eitm.org/dropbox/Redcap_Cloud_STATE/archive/rcc_user_records_20240603_0922/STATE_History_and_Diagnosis/STATE_History.csv'
-    htx = pd.read_csv(htx_path)[['STATE_Alc_Consumption', 'STATE_Tobacco_History', 'participantId']]
-    br_htx_path = '/home/xchen@okta-oci.eitm.org/dropbox/Redcap_Cloud_STATE/rcc_user_records_20240124_0923/STATE_History_and_Diagnosis_Breast/STATE_History.csv'
-    br_htx = pd.read_csv(br_htx_path)[['STATE_Alc_Consumption', 'STATE_Tobacco_History', 'participantId']]
-    htx = pd.concat([htx, br_htx], axis=0)
-    agg_snv = agg_snv.merge(htx, left_on='draw_id', right_on='participantId', how='left')
-    # agg_snv.drop(columns='cohort_other')
-    return agg_snv
-
 def get_select_draw_ids(subjects, manuscript_sample_prep_file):
     draw_mapping = get_draw_mapping(subjects, manuscript_sample_prep_file)
     select_draw_ids = []
@@ -245,7 +234,7 @@ def calculate_slopes(agg_snv_global, cols, meta_cols):
                 # data[:, f'{col}_r'] = r
                 # data[:, f'{col}_p'] = p
             dynamic_data.append(data_for_slope)
-    return pd.concat(dynamic_data, axis = 0)
+    return dynamic_data #pd.concat(dynamic_data, axis = 0)
 
 def mutsig_global_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
     input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, '*.vcf'))
