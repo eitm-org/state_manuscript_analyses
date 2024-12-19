@@ -34,8 +34,8 @@ def main():
         assignment_solution_activities = assignment_solution_activities.reset_index()
         assignment_solution_activities.to_csv(f'cosmics_sig_data/mut_sig_assignment_solution_activities_{filternum}.csv', index = False)
 
-    # hg002_fp_vcfs = os.path.join(flat_results_dir,'STATE_HG002_vcfs/fp')
-    # Analyze.cosmic_fit(samples = hg002_fp_vcfs, output = 'cosmics_sig_data/mut_sig_hg002_fp', input_type = 'vcf', context_type="96",
-    #                genome_build="GRCh38", collapse_to_SBS96 = False)
+    hg002_fp_vcfs = os.path.join(flat_results_dir,'STATE_HG002_vcfs/fp')
+    Analyze.cosmic_fit(samples = hg002_fp_vcfs, output = 'cosmics_sig_data/mut_sig_hg002_fp', input_type = 'vcf', context_type="96",
+                   genome_build="GRCh38", collapse_to_SBS96 = False)
 if __name__ == "__main__":
     main()
