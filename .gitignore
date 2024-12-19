@@ -168,12 +168,14 @@ HG002_fully_resolved/
 STATE_HG002_mosdepth/
 STATE_HG002_vcfs/
 STATE_mosdepth/
-STATE_vcfs_f1/
 STATE_vcfs_f3/
-STATE_vcfs_f1_region_filtered/
 STATE_vcfs_f3_region_filtered/
+STATE_vcfs_f3_region_filtered_funcotated
 noisy_coverage_regions/
 constants.RData
+*.csv
+*.xlsx
+logs/
 
 #Rproject
 *.Rproj

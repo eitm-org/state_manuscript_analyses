@@ -11,73 +11,27 @@ library(RSQLite)
 library(Gmisc)
 library(dplyr)
 
-USER = Sys.getenv(c("USER"))
+if(!require(reticulate)){
+    install.packages("reticulate")
+    library(reticulate)
+}
+setwd('~/projects/state_manuscript_analyses/post_processing')
+source_python('scripts/constants.py')
 
-## Set Work Directory --------
-setwd(pathJoin("/home", USER, "/projects/STATE_QC/data"))
+global = read.csv("aggregate_data/aggregate_snv_patient_global_f1.csv")
 
-chronqc_db_dir = pathJoin('/home', USER, 'dropbox/chronqc_db')
-system(paste0('rclone copy dropbox:"EITM-Oxford Nanopore Team/STATE experiments/Derived Data Analysis/ChronQC/chronqc_db" ', chronqc_db_dir))
-## Load Data ---------
-con <- dbConnect(SQLite(), "/home/xchen@okta-oci.eitm.org/dropbox/chronqc_db/chronqc.stats.sqlite")
-as.data.frame(dbListTables(con))
-data <- dbReadTable(con, 'chronqc_stats_data')
-data$active_CHANNEL_40HR = data$pore_CHANNEL_40HR + data$sequencing_CHANNEL_40HR
+## Merge and Preprocess -------
+data = read.csv(sample_prep_table_path)
+data <- data %>%
+  rename(
+    EIBS = Sample
+  )
+
+data = data %>% filter(if_all(Median_Coverage, ~ . >= 20))
 data$LSK = str_split_fixed(data$Ligation_Sequencing_Kit_Batch., " ", 2)[,1]
 data = distinct(data)
 
-global = read.csv("/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_global_f1.csv")
-chrom = read.csv("/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_chrom_f1.csv")
-mbps = read.csv("/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_Mbps_f1.csv")
-
-## Merge and Preprocess -------
-
-# merge dataset and exclude run 002 - 004
-data <- data %>%
-  rename(
-    EIBS = Sample
-  )
-
-ids_wanted = c('PAU25537',
-               'PAU13632',
-               'PAU24514',
-               'PAU24660',
-               'PAU25467',
-               'PAU24089',
-               'PAU25134',
-               'PAU25155',
-               'PAU23576',
-               'PAU13428',
-               'PAU25526',
-               'PAU25178',
-               'PAU24905',
-               'PAU14686',
-               'PAU24824',
-               'PAU24938',
-               'PAU24406',
-               'PAU24062',
-               'PAU24986')
-
-data <- data %>%
-  rename(
-    EIBS = Sample
-  )
-data = data %>% filter(if_all(Median_Coverage, ~ . >= 20)) %>%
-  filter(if_all(EIBS, ~ . != "EIBS-001TC_02816_3_1_1_20231031" & . != 'EIBS-001VB_03588_9_1_1_20221021'))  %>%
-  filter(! flowcell_id %in% ids_wanted)
-
-
 merged_qc_global <- merge(global, data, by = "EIBS") 
-
-merged_qc_chrom <- merge(chrom, data, by = "EIBS")
-merged_qc_mbps <- merge(mbps, data, by = "EIBS") 
-## Split Mbps and Chrom Dataframe
-# by the 'chr' column
-list_qc_chrom <- split(merged_qc_chrom, merged_qc_chrom$chr)
-
-#list of mbps by 'chr', 'start' and 'end'
-merged_qc_mbps$group <- paste(merged_qc_mbps$chr, merged_qc_mbps$start, merged_qc_mbps$end, sep="_")
-list_qc_mbps <- split(merged_qc_mbps, merged_qc_mbps$group)
 
 ## Adjust All Columns -------
 #' Adjust batch effect for all columns
@@ -140,41 +94,9 @@ adjust_all_batch <- function(data, keyword, batch, confounder, saveFile) {
   return(data_adj)
 }
 
-# 10 Hr
 # Adjust Global
-merged_qc_global_10Hr_adj<-adjust_all_batch(merged_qc_global, count, LSK, Median_Coverage, F)
-write.csv(merged_qc_global_10Hr_adj, "/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/global_batch_adj_f1.csv", row.names = FALSE) 
-
-# Adjust Chrom 
-adjusted_dfs_chrom <- lapply(list_qc_chrom, function(df_chrom) {
-  adjust_all_batch(df_chrom, count, LSK, Median_Coverage, FALSE)
-}) # (lapply function name must contain "_chrom_")
-
-all_columns <- unique(unlist(lapply(adjusted_dfs_chrom, names)))
-
-adjusted_dfs_chrom <- lapply(adjusted_dfs_chrom, function(df) {
-  missing_cols <- setdiff(all_columns, names(df))
-  df[missing_cols] <- NA
-  return(df)
-})
-merged_qc_chrom_10Hr_adj <- do.call(rbind, adjusted_dfs_chrom)
-write.csv(merged_qc_chrom_10Hr_adj, "/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/chrom_batch_adj_f1.csv", row.names = FALSE) 
-
-# Adjust mbps
-adjusted_dfs_mbps <- lapply(list_qc_mbps, function(df_mbps) {
-  adjust_all_batch(df_mbps, count, LSK, Median_Coverage, FALSE)
-}) # (lapply function name must contain "_mbps_")
-
-all_columns <- unique(unlist(lapply(adjusted_dfs_mbps, names)))
-
-adjusted_dfs_mbps <- lapply(adjusted_dfs_mbps, function(df) {
-  missing_cols <- setdiff(all_columns, names(df))
-  df[missing_cols] <- NA
-  return(df)
-})
-merged_qc_mbps_10Hr_adj <- do.call(rbind, adjusted_dfs_mbps)
-write.csv(merged_qc_mbps_10Hr_adj, "/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/mbps_batch_adj_f1.csv", row.names = FALSE) 
-
+merged_qc_global_adj<-adjust_all_batch(merged_qc_global, count, LSK, Median_Coverage, F)
+write.csv(merged_qc_global_adj, "aggregate_data/global_batch_adj_f1.csv", row.names = FALSE) 
 
 ## Plot Data ---------
 

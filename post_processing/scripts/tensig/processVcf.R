@@ -7,13 +7,16 @@ library(rtracklayer)
 source("scripts/tensig/mutations.R")
 load("scripts/tensig/constants.RData") #download constants.Rdata from here: https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view
 
-setwd('~/projects/state_manuscript_analyses/post_processing')
+if(!require(reticulate)){
+    install.packages("reticulate")
+    library(reticulate)
+}
 source_python('scripts/constants.py')
 
 genomePath <- file.path(refs_dir, "GRCh38/GRCh38.primary_assembly.genome_X.fa") #"genome.fa.gz" # path to the reference genome
 
 liftOverAnnots <- function(gr){
-  chain_path = file.path(refs, '/gh38_granges/hg19ToHg38.over.chain')
+  chain_path = file.path(refs_dir, '/gh38_granges/hg19ToHg38.over.chain')
   ch = rtracklayer::import.chain(chain_path)
   seqlevelsStyle(gr) = "UCSC"  # necessary
   gr = liftOver(gr, ch)

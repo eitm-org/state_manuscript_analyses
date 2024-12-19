@@ -1,15 +1,17 @@
 import os
 import glob
 import subprocess
-import sys
+
+from constants import flat_results_dir
 
 def main():
-    VEP_COMMAND = "/home/xchen@okta-oci.eitm.org/projects/ensembl-vep/vep -i {} -o {} --cache --force_overwrite --sift b --polyphen b -v --plugin AlphaMissense,file=/data/xchen/refs/vep/AlphaMissense_hg38.tsv.gz,cols=all"
-    filternums = ['f1', 'f3']
+    VEP_COMMAND = "vep -i {} -o {} --cache --force_overwrite --sift b --polyphen b -v --plugin AlphaMissense,file=/data/xchen/refs/vep/AlphaMissense_hg38.tsv.gz,cols=all"
+    filternums = ['f3']
     for filternum in filternums:
-        input_dir = f'/data/scratch/xchen/STATE_vcfs_{filternum}_region_filtered/full_genome'
-        output_dir = f'/data/scratch/xchen/STATE_vcfs_{filternum}_region_filtered/full_genome_vep'
-        print(len(glob.glob(os.path.join(input_dir, '*.vcf'))))
+        input_dir = os.path.join(flat_results_dir, f'STATE_vcfs_{filternum}_region_filtered/full_genome')
+        output_dir = os.path.join(flat_results_dir, f'STATE_vcfs_{filternum}_region_filtered/full_genome_vep')
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
         for input_file in glob.glob(os.path.join(input_dir, '*.vcf')):
             vcf_dir, vcf_filename = input_file.rsplit('/', 1)
             output_file = os.path.join(output_dir, vcf_filename)

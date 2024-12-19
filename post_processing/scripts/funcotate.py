@@ -2,18 +2,16 @@ import glob
 import os
 import subprocess
 
-from constants import refs_dir
+from constants import refs_dir, flat_results_dir
 
 def main():
     FUNC_CMD = """gatk Funcotator --variant {input_vcf} --reference {refs_dir}/GRCh38/GRCh38.primary_assembly.genome_X.fa \
         --ref-version hg38 --data-sources-path {refs_dir}/funcotator_dataSources.v1.7.20200521s --output {out_vcf} -output-file-format VCF
     """
-
-    for patient_file in glob.glob('/data/scratch/xchen/STATE_vcfs_f[1,3]_region_filtered/full_genome/*.vcf'):
-        # vcf_dir, _ = patient_file.rsplit('/', 1)
+    for patient_file in glob.glob(os.path.join(flat_results_dir, 'STATE_vcfs_f3_region_filtered/full_genome/*.vcf')):
         vcf = patient_file.split('/')[-1]
         vcf_basename, filternum = vcf.split('.')[0], vcf.split('.')[2]
-        funcotated_dir = f'STATE_vcfs_f{filternum[-1]}_region_filtered_funcotated/full_genome/'
+        funcotated_dir = os.path.join(flat_results_dir, f'STATE_vcfs_f{filternum[-1]}_region_filtered_funcotated/full_genome/')
         if not os.path.exists(funcotated_dir):
             os.makedirs(funcotated_dir)
         output_path = os.path.join(funcotated_dir, vcf)
