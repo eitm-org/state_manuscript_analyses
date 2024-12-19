@@ -14,11 +14,11 @@ Rscript scripts/region_noise_filter_f3.R
 echo "add functional annotations"
 python scripts/funcotate.py
 echo "refit tensorignatures"
-python scripts/refit_tensig.py $1
+python scripts/refit_tensig.py
 python scripts/get_vep.py
 echo "assign cosmic signatures"
 python scripts/assign_cosmic.py 
 echo "aggregate SNV metrics"
-python scripts/aggregate_snv_metrics.py $1
+python scripts/aggregate_snv_metrics.py
 echo "batch correct"
 Rscript scripts/batch_effect_correction_functions_f3.R
