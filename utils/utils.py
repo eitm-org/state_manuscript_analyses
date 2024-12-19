@@ -87,10 +87,10 @@ def derive_final_metrics(data, error_model=True):
     num[num < 0] = 0
     return data
 
-def read_agg_snv(path):
+def read_agg_snv(path, subjects, manuscript_sample_prep_file):
     agg_snv = pd.read_csv(path)
-    agg_snv['date'] = pd.to_datetime(agg_snv.date, format='%Y-%m-%d', errors='ignore')
-    agg_snv['date'] = agg_snv['date'].dt.date
+    # agg_snv['date'] = pd.to_datetime(agg_snv.date, format='%Y-%m-%d', errors='ignore')
+    # agg_snv['date'] = agg_snv['date'].dt.date
     # agg_snv.sort_values(['month', 'date'], inplace=True)
     if 'chr' in agg_snv.columns:
         agg_snv['chr_num'] = pd.to_numeric(agg_snv.chr.str[3:].replace('X', '23').replace('Y', '24'))
@@ -98,7 +98,9 @@ def read_agg_snv(path):
     for col in ['draw_id', 'draw_times', 'cohort']:
         if col in agg_snv.columns:
             agg_snv.drop(columns=col, inplace=True)
-    return eid_to_patient_cohort(agg_snv).reset_index()
+    
+    draw_mapping = get_draw_mapping(subjects, manuscript_sample_prep_file)
+    return eid_to_patient_cohort(agg_snv, draw_mapping).reset_index()
 
 def join_clinical(agg_snv):
     agg_snv['age_high'] = agg_snv.draw_age >= 65
@@ -111,60 +113,36 @@ def join_clinical(agg_snv):
     # agg_snv.drop(columns='cohort_other')
     return agg_snv
 
-def get_select_draw_ids():
-    draw_mapping = get_draw_mapping()
+def get_select_draw_ids(subjects, manuscript_sample_prep_file):
+    draw_mapping = get_draw_mapping(subjects, manuscript_sample_prep_file)
     select_draw_ids = []
     for key, (did, dt, co) in draw_mapping.items():
         if dt >= 3 and did not in select_draw_ids:
             select_draw_ids.append(did)
     return select_draw_ids
 
-def get_draw_mapping():
-    mapping_path = '/home/xchen@okta-oci.eitm.org/dropbox/STATE_Draw_Event_Data/STATE Draws - Deidentified_cohorts.xlsx'
-    draw_mapping = {}
-    cohort_sheets = ['No Cancer', 'Past Cancer', 'Active']
-    for sheet in cohort_sheets:
-        draw_table = pd.read_excel(mapping_path, sheet_name=sheet)
-        for i, row in draw_table.iterrows():
-            
-            patient_id = row['Project Participant IDs']
-            age = row['Age']
-            baseline_eid = row['Baseline']
-            draw2_eid = row['Draw 2']
-            draw3_eid = row['Draw 3']
-            draw4_eid = row['Draw 4']
-            draw5_eid = row['Draw 5']
-            draw6_eid = row['Draw 6']
-            draw1_mon = 0
-            draw2_mon = row['Month since Baseline \n(Draw 2)']
-            draw3_mon = row['Month since Baseline \n(Draw 3)']
-            draw4_mon = row['Month since Baseline \n(Draw 4)']
-            draw5_mon = row['Month since Baseline \n(Draw 5)']
-            draw6_mon = row['Month since Baseline \n(Draw 6)']
-            # cohort = COHORT_MAPPING[row['Cohorts']]
-            cohort = CLINICAL_COHORT_MAPPING[sheet]
-            draw_mapping[baseline_eid] = (patient_id, BASELINE, cohort, draw1_mon, age)
-            draw_mapping[baseline_eid] = (patient_id, BASELINE, cohort, draw1_mon, age)
-            if draw2_eid is not np.nan:
-                draw_mapping[draw2_eid] = (patient_id, DRAW2, cohort, draw2_mon, age)
-                draw_mapping[draw2_eid] = (patient_id, DRAW2, cohort, draw2_mon, age)
-            if draw3_eid is not np.nan:
-                draw_mapping[draw3_eid] = (patient_id, DRAW3, cohort, draw3_mon, age)
-                draw_mapping[draw3_eid] = (patient_id, DRAW3, cohort, draw3_mon, age)
-            if draw4_eid is not np.nan:
-                draw_mapping[draw4_eid] = (patient_id, DRAW4, cohort, draw4_mon, age)
-                draw_mapping[draw4_eid] = (patient_id, DRAW4, cohort, draw4_mon, age)
-            if draw5_eid is not np.nan:
-                draw_mapping[draw5_eid] = (patient_id, DRAW5, cohort, draw5_mon, age)
-                draw_mapping[draw5_eid] = (patient_id, DRAW5, cohort, draw5_mon, age)
-            if draw6_eid is not np.nan:
-                draw_mapping[draw6_eid] = (patient_id, DRAW6, cohort, draw6_mon, age)
-                draw_mapping[draw6_eid] = (patient_id, DRAW6, cohort, draw6_mon, age)
-    return draw_mapping
+def get_draw_mapping(subjects, manuscript_sample_prep_file):
+    #read tables
+    subjects = pd.read_csv(subjects)
+    msp = pd.read_csv(manuscript_sample_prep_file)
+    #filter out HG002 columns (they have Project_Participant_ID = NaN)
+    msp = msp[pd.notnull(msp['Project_Participant_ID'])]
+    #merge age and cohort into the data table
+    all_df = msp.merge(subjects, how = 'outer', left_on = 'Project_Participant_ID', right_on = 'STATE_PPID')
+    #truncate Sample to EIBS-{*}{5}
+    all_df['Sample'] = all_df['Sample'].str.slice(0, 10)
+    #add visit number column
+    all_df = all_df.sort_values(by = ['Project_Participant_ID', 'Month_since_baseline_draw'])
+    all_df['drawnum'] = all_df.groupby(['Project_Participant_ID']).cumcount()
+    #change column order
+    all_df = all_df[['Sample', 'Project_Participant_ID', 'drawnum', 'cohort', 'Month_since_baseline_draw', 'STATE_Age_Calculated']]
+    #make it into a dictionary
+    all_df = all_df.to_numpy()
+    # all_df = all_df.to_dict('series')
+    all_df = dict((x[0], (x[1], x[2], x[3], x[4], x[5])) for x in all_df[1:])
+    return all_df
 
-
-def eid_to_patient_cohort(df):
-    draw_mapping = get_draw_mapping()
+def eid_to_patient_cohort(df, draw_mapping):
     df_copy = df.copy()
     draw_id = [draw_mapping[idx[0]][0] for idx in df_copy.index.str.split('_', n=1)]
     draw_times = [draw_mapping[idx[0]][1] for idx in df_copy.index.str.split('_', n=1)]
@@ -181,7 +159,6 @@ def eid_to_repeats(df):
     df_copy.index = [idx if idx in repeats else 'other' for idx in df_copy.index.str.split('_', expand=True).get_level_values(0)]
     df_copy.sort_index(inplace=True)
     return df_copy
-
 
 def parse_date(df):
     dates = (df\
@@ -272,26 +249,20 @@ def calculate_slopes(agg_snv_global, cols, meta_cols):
 
 def mutsig_global_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
     input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, '*.vcf'))
-    # input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, 'full_genome', '*.ann.filtered[1,3].vcf'))
+
     input_vcf_paths2.sort()
     patient_ids = [vcf_path.split('/')[-1].split('_vs_')[0] for vcf_path in input_vcf_paths2]
     i = 0
-    exposure_concat_chunks = []
-    #for chunk in ['chunk1', 'chunk2', 'chunk3']:
     mutsig_path = f'{mutsig_path_prefix}.pkl'
     init = ts.load_dump(mutsig_path)
     rows = [f'ts{n+1:02}' for n in range(init.rank)]
     ids = patient_ids[i: i + init.sample_indices.shape[0]] #+ fp_ids + fp_pileup_ids
+
     exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
     exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
     exposure_df = exposure_df.add_prefix('mutsig_count_')
     exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
     exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
     exposure_concat['EIBS'] = exposure_concat.index
-    exposure_concat_chunks.append(exposure_concat)
-    i += init.sample_indices.shape[0]
-    return pd.concat(exposure_concat_chunks, axis=0)
 
-
-
-
+    return exposure_concat
