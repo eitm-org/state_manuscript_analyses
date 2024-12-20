@@ -128,11 +128,13 @@ def get_draw_mapping(subjects, manuscript_sample_prep_file):
     #make it into a dictionary
     all_df = all_df.to_numpy()
     # all_df = all_df.to_dict('series')
-    all_df = dict((x[0], (x[1], x[2], x[3], x[4], x[5])) for x in all_df[1:])
+    all_df = dict((x[0], (x[1], x[2], x[3], x[4], x[5])) for x in all_df[0:])
     return all_df
 
 def eid_to_patient_cohort(df, draw_mapping):
     df_copy = df.copy()
+    eibs_to_drop =  set(df.index.tolist()) - set(draw_mapping.keys())
+    df_copy = df.drop(index=eibs_to_drop)
     draw_id = [draw_mapping[idx[0]][0] for idx in df_copy.index.str.split('_', n=1)]
     draw_times = [draw_mapping[idx[0]][1] for idx in df_copy.index.str.split('_', n=1)]
     cohorts = [draw_mapping[idx[0]][2] for idx in df_copy.index.str.split('_', n=1)]
