@@ -1,13 +1,23 @@
-library(tidyverse)
-library(ggplot2)
-library(viridis)
-library(here)
-library(patchwork)
-library(knitr)
-library(lme4)
-library(nlme)
-library(lqmm)
-library(ggplot2)
+
+if(!require(here)){
+  install.packages("here")
+  library(here)
+}
+
+if(!require(knitr)){
+  install.packages("knitr")
+  library(knitr)
+}
+
+if(!require(lqmm)){
+  install.packages("lqmm")
+  library(lqmm)
+}
+
+if(!require(nlme)){
+  install.packages("nlme")
+  library(nlme)
+}
 
 ####################################################
 #

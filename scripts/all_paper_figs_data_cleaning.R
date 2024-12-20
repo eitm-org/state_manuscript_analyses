@@ -2,20 +2,81 @@
 #1) to set up a rclone remote to dropbox called "dropbox"
 #to see filepaths you may have to change, search "^"
 
-library(tidyverse)
-library(ggplot2)
-library(ggbeeswarm)
-library(patchwork)
-library(viridis)
-library(cowplot)
-library(stringr)
-library(janitor)
-library(gridExtra)
-library(sjPlot)
-library(sjtable2df)
-library(lme4)
-library(readxl)
-library(purrr)
+# Package Installations & Set-Up --------------------------------------------------------
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+if(!require(ggplot2)){
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+
+if(!require(ggbeeswarm)){
+  install.packages("ggbeeswarm")
+  library(ggbeeswarm)
+}
+
+if(!require(patchwork)){
+  install.packages("patchwork")
+  library(patchwork)
+}
+
+if(!require(viridis)){
+  install.packages("viridis")
+  library(viridis)
+}
+
+if(!require(cowplot)){
+  install.packages("cowplot")
+  library(cowplot)
+}
+
+if(!require(stringr)){
+  install.packages("stringr")
+  library(stringr)
+}
+
+if(!require(janitor)){
+  install.packages("janitor")
+  library(janitor)
+}
+
+if(!require(gridExtra)){
+  install.packages("gridExtra")
+  library(gridExtra)
+}
+
+if(!require(stringr)){
+  install.packages("stringr")
+  library(stringr)
+}
+
+if(!require(sjPlot)){
+  install.packages("sjPlot")
+  library(sjPlot)
+}
+
+if(!require(sjtable2df)){
+  install.packages("sjtable2df")
+  library(sjtable2df)
+}
+
+if(!require(lme4)){
+  install.packages("lme4")
+  library(lme4)
+}
+
+if(!require(readxl)){
+  install.packages("readxl")
+  library(readxl)
+}
+
+if(!require(purrr)){
+  install.packages("purrr")
+  library(purrr)
+}
 
 # Working directory should be repo root folder (^)
 new_wd <- file.path("~", "project", "state_manuscript_analyses")
@@ -28,8 +89,13 @@ source(file.path("scripts", "all_paper_figs_functions.R"))
 #        DATA PATHS
 #
 ######################################################
-# Contrived samples, pull from zenodo and modify path accordingly
-contrived <- file.path("/data/scratch/xchen/contrived_vcfs_f3")
+# Contrived samples
+if(!require(reticulate)){
+  install.packages("reticulate")
+  library(reticulate)
+}
+source_python('post_processing/scripts/constants.py', envir = parent.frame())
+contrived <- contrived_path
 
 # sbs cosmic fit data
 SBS_fp <- file.path("input_data/fig3/SBS_false_positives.csv")
@@ -228,8 +294,8 @@ for (name in plotting_data$names) {
 }
 plotting_data$x_labs <- as.numeric(x_labs)
 
-write_csv(activities_df, file.path("input_data", "fig5", "activities.csv"))
-write_csv(plotting_data, file.path("input_data", "fig5", "data_for_tmb.csv"))
+write_csv(activities_df, file.path("input_data", "fig5", "long_activities.csv"))
+write_csv(plotting_data, file.path("input_data", "fig5", "long_data_for_tmb.csv"))
 
 ############################################################
 #

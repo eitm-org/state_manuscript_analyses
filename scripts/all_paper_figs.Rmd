@@ -8,16 +8,26 @@ date: "`r Sys.Date()`"
 ---
 
 ```{r setup, include=FALSE}
-library(tidyverse)
-library(ggplot2)
-library(viridis)
-library(ggbeeswarm)
-library(patchwork)
-library(waffle)
-library(gridExtra)
-library(reshape2)
-library(pheatmap)
-library(pander)
+if(!require(pander)){
+  install.packages("pander")
+  library(pander)
+}
+
+if(!require(pheatmap)){
+  install.packages("pheatmap")
+  library(pheatmap)
+}
+
+if(!require(waffle)){
+  install.packages("waffle")
+  library(waffle)
+}
+
+if(!require(reshape2)){
+  install.packages("reshape2")
+  library(reshape2)
+}
+
 #set wd
 new_wd <- file.path("~", "project", "state_manuscript_analyses")
 setwd(new_wd)
@@ -306,8 +316,8 @@ ggsave('plots/fig4/median_boxplots.png', fig4_bp)
 ```{r fig.width = 14, fig.height = 4}
 # Figure 5: COSMIC SBSs are individual specific
 
-activities_df <- read_csv("./input_data/fig5/activities.csv")
-plotting_data <- read_csv("./input_data/fig5/data_for_tmb.csv")
+activities_df <- read_csv("./input_data/fig5/long_activities.csv")
+plotting_data <- read_csv("./input_data/fig5/long_data_for_tmb.csv")
 
 tmb_plot <- ggplot() + 
   geom_point(data = activities_df, mapping = aes(x = index, y = Mut_burden), size = 0.5) +
