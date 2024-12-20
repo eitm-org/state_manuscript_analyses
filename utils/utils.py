@@ -243,20 +243,21 @@ def calculate_slopes(agg_snv_global, cols, meta_cols):
 
 def mutsig_global_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
     input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, '*.vcf'))
-
     input_vcf_paths2.sort()
     patient_ids = [vcf_path.split('/')[-1].split('_vs_')[0] for vcf_path in input_vcf_paths2]
     i = 0
-    mutsig_path = f'{mutsig_path_prefix}.pkl'
-    init = ts.load_dump(mutsig_path)
-    rows = [f'ts{n+1:02}' for n in range(init.rank)]
-    ids = patient_ids[i: i + init.sample_indices.shape[0]] #+ fp_ids + fp_pileup_ids
-
-    exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
-    exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
-    exposure_df = exposure_df.add_prefix('mutsig_count_')
-    exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
-    exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
-    exposure_concat['EIBS'] = exposure_concat.index
-
-    return exposure_concat
+    exposure_concat_chunks = []
+    for chunk in ['chunk1', 'chunk2', 'chunk3']:
+        mutsig_path = f'{mutsig_path_prefix}_{chunk}.pkl'
+        init = ts.load_dump(mutsig_path)
+        rows = [f'ts{n+1:02}' for n in range(init.rank)]
+        ids = patient_ids[i: i + init.sample_indices.shape[0]] #+ fp_ids + fp_pileup_ids
+        exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
+        exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
+        exposure_df = exposure_df.add_prefix('mutsig_count_')
+        exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
+        exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
+        exposure_concat['EIBS'] = exposure_concat.index
+        exposure_concat_chunks.append(exposure_concat)
+        i += init.sample_indices.shape[0]
+    return pd.concat(exposure_concat_chunks, axis=0)
