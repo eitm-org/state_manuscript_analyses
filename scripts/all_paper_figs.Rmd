@@ -28,7 +28,6 @@ knitr::opts_knit$set(root.dir = new_wd)
 knitr::opts_chunk$set(echo = FALSE, error = FALSE, message = FALSE)
 ```
 
-
 ```{r fig1a_load-data}
 # Figure 1A: Percentage of recovery (LOD/LOQ)
 df100 <- readRDS(file.path(new_wd, "input_data", "fig1", "recovery_pct", "isec_results_vs100sample.rds"))
@@ -52,17 +51,14 @@ recall_plot
 
 ```
 
-
-
 $$
 \text{Percent Recall}= \frac{tp}{tp+fn}*100
 $$
 
-tp = "True Positive" = intersection of sample and 100% combined "pure sample"
+tp = "True Positive" = intersection of sample and 100% combined "pure sample" 
 fp = "false positive" = SNVs JUST found in sample (not 100% "pure sample")
 
 Intuitively, percent recall can be thought of as the percent overlap with pure sample compared to percentage observed snvs per sample.
-
 
 ```{r fig1a_means, results = "asis"}
 means_df <- df100_filt %>%
@@ -91,7 +87,6 @@ rsq_tab <- pandoc.table(rsq_df)
 ```
 
 \newpage
-
 
 ```{r sanity_tab, echo = TRUE, results = "asis"}
 sanity_tab <- df100 %>%
@@ -122,8 +117,9 @@ Fig 1A: Recovery of single nucleotide variants observed in a pure sample of BT-4
 
 This figure uses the number of SNVs in the intersection between the 100% BT474 and 1, 5, and 10% BT474
 
-![ISEC Image]((./knitting_files/images/venn.png)
-
+```{r figurename, echo=FALSE, out.width = '90%'}
+knitr::include_graphics("./knitting_files/images/venn.png")
+```
 
 ```{r fig1b_import_data}
 # Figures 1B-1F: Signatures recovery of contrived sample
@@ -157,7 +153,6 @@ sbs_contrived
 
 ggsave('plots/fig1/sbs_contrived.png', sbs_contrived)
 ```
-
 
 ```{r fig1cf_load-data}
 ## Fig1C-F: Fig1 C-F: Retrieval of BT-474 characteristic signatures (SBS2, SBS13) and universal SBS (SBS1, SBS5) as a function of BT-474 spike-in concentration.
@@ -372,7 +367,6 @@ snv_vs_age
 ggsave('plots/fig6/snv_vs_age.png', snv_vs_age)
 ```
 
-
 ```{r fig7_import_data}
 # Figure 7: Histograms of slopes from individual models
 dynamic_df_grp_melt <- read_csv(file.path("input_data", "fig7", "slopes_intercepts.csv"))
@@ -406,29 +400,31 @@ ggsave('plots/fig7/violin_plot.png', v_plot)
 
 ```{r fig7b_import_data}
 dynamic_df_grp_wide <- read_csv(file.path("input_data", "fig7", "dynamic_slopes_intercepts_wide.csv"))
-sbs1_mean_slope = mean(dynamic_df_grp_wide$SBS1_ratio_adj3_slope)
-sbs1_mean_int = mean(dynamic_df_grp_wide$SBS1_ratio_adj3_intercept)
-sbs5_mean_slope = mean(dynamic_df_grp_wide$SBS5_ratio_adj3_slope)
-sbs5_mean_int = mean(dynamic_df_grp_wide$SBS5_ratio_adj3_intercept)
-sbs18_mean_slope = mean(dynamic_df_grp_wide$SBS18_ratio_adj3_slope)
-sbs18_mean_int = mean(dynamic_df_grp_wide$SBS18_ratio_adj3_intercept)
-sbs90_mean_slope = mean(dynamic_df_grp_wide$SBS90_ratio_adj3_slope)
-sbs90_mean_int = mean(dynamic_df_grp_wide$SBS90_ratio_adj3_intercept)
+sbs1_mean_slope = mean(dynamic_df_grp_wide$SBS1_count_adj3_slope)
+sbs1_mean_int = mean(dynamic_df_grp_wide$SBS1_count_adj3_intercept)
+sbs5_mean_slope = mean(dynamic_df_grp_wide$SBS5_count_adj3_slope)
+sbs5_mean_int = mean(dynamic_df_grp_wide$SBS5_count_adj3_intercept)
+sbs18_mean_slope = mean(dynamic_df_grp_wide$SBS18_count_adj3_slope)
+sbs18_mean_int = mean(dynamic_df_grp_wide$SBS18_count_adj3_intercept)
+sbs90_mean_slope = mean(dynamic_df_grp_wide$SBS90_count_adj3_slope)
+sbs90_mean_int = mean(dynamic_df_grp_wide$SBS90_count_adj3_intercept)
 ```
 
 ```{r, fig7b_lin_plot, warning = FALSE}
-chosen_sbs <- c("SBS1_ratio_adj3", "SBS5_ratio_adj3", "SBS18_ratio_adj3", "SBS90_ratio_adj3")
+chosen_sbs <- c("SBS1_count_adj3", "SBS5_count_adj3", "SBS18_count_adj3", "SBS90_count_adj3")
 
 chosen_sbs_plots <- lapply(chosen_sbs, plot_lin_mods)
 names(chosen_sbs_plots) <- chosen_sbs
 chosen_sbs_plots
 ```
 
-![Figure S1: Filtering schema](./knitting_files/images/filtration_schema.png)
+```{r figurename, echo=FALSE, fig.cap="Figure S1: Filtration Schema", out.width = '90%'}
+knitr::include_graphics("./knitting_files/images/filtration_schema.png")
+```
 
-
-![Figure S2: Description of the workflpostow and processing times](./knitting_files/images/workflow.png)
-
+```{r figurename, echo=FALSE, fig.cap="Figure S2: Description of the workpostflow and processing times", out.width = '90%'}
+knitr::include_graphics("./knitting_files/images/workflow.png")
+```
 
 ```{r}
 # Figure S3: COSMIC SBSs' of subjects' high-confidence sSNVs compared to HG002 false positives sSNVs
@@ -544,6 +540,3 @@ sds_final[nrow(sds_final) + 1,] <- append("Mean", as.list(colMeans(sds_final[,-1
 names(sds_final) <- c("Signature", "HG002\nMean SNV Ratio", "HG002\nSD SNV Ratio", "Samples\nMean SNV Ratio", "Samples\nSD SNV Ratio")
 pandoc.table(sds_final, keep.line.breaks = TRUE, emphasize.rows = nrow(sds_final))
 ```
-
-
-
