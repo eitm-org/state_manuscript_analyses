@@ -75,7 +75,7 @@ def refit_subject():
                 print(f"Error: {e.output.decode('utf-8')}")
 
 if __name__ == "__main__":
-    PROCESS_VCF_CMD = """Rscript scripts/tensig/processVcf.R {} {}\n"""
+    PROCESS_VCF_CMD = """Rscript post_processing/scripts/tensig/processVcf.R {} {}\n"""
     TENSIG_PREP_CMD = """tensorsignatures prep {} {}\n"""
     TENSIG_REFIT_CMD = """tensorsignatures refit -n {} {}\n"""
     refit_hg002_fp()
