@@ -4,14 +4,14 @@ library(VariantAnnotation)
 library(rhdf5)
 library(rtracklayer)
 # PLEASE adjust paths
-source("scripts/tensig/mutations.R")
-load("scripts/tensig/constants.RData") #download constants.Rdata from here: https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view
+source("post_processing/scripts/tensig/mutations.R")
+load("post_processing/scripts/tensig/constants.RData") #download constants.Rdata from here: https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view
 
 if(!require(reticulate)){
     install.packages("reticulate")
     library(reticulate)
 }
-source_python('scripts/constants.py')
+source_python('post_processing/scripts/constants.py')
 
 genomePath <- file.path(refs_dir, "GRCh38/GRCh38.primary_assembly.genome_X.fa") #"genome.fa.gz" # path to the reference genome
 

@@ -45,15 +45,15 @@ setup(
     author_email='xchen@eitm.org',
     url='https://github.com/xingyaoc/STATE_analyses',
     packages=[
-        'STATE_analyses',
+        'utils', 'scripts'
     ],
-    package_dir={'STATE_analyses':
-                 'STATE_analyses'},
+    package_dir={'utils':
+                 'utils', 'scripts': 'post_processing/scripts'},
     include_package_data=True,
     install_requires=requirements,
     license="ISCL",
     zip_safe=False,
-    keywords='STATE_analyses',
+    keywords='utils',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

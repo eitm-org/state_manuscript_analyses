@@ -6,10 +6,10 @@ import pandas as pd
 import tensorsignatures as ts
 
 
-from aggregate_funcotator_utils import aggregate_funcotator_Mbps, aggregate_funcotator_chr, aggregate_funcotator_global, get_funcotator_data_for_vcf
-from aggregate_vep_utils import aggregate_vep_Mbps, aggregate_vep_chrom, aggregate_vep_global, get_vep_df
+from utils.aggregate_funcotator_utils import aggregate_funcotator_Mbps, aggregate_funcotator_chr, aggregate_funcotator_global, get_funcotator_data_for_vcf
+from utils.aggregate_vep_utils import aggregate_vep_Mbps, aggregate_vep_chrom, aggregate_vep_global, get_vep_df
 
-from constants import flat_results_dir
+from scripts.constants import flat_results_dir
 
 
 def aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR):
@@ -75,30 +75,6 @@ def mutsig_global_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
         exposure_concat_chunks.append(exposure_concat)
         i += init.sample_indices.shape[0]
     return pd.concat(exposure_concat_chunks, axis=0)
-
-# def mutsig_chrom_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
-#     input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, 'chr*', '*.ann.filtered[1,3].chrom.vcf'))
-#     input_vcf_paths2.sort()
-#     patient_ids = [vcf_path.split('/')[-1].split('_vs_')[0] for vcf_path in input_vcf_paths2]
-#     chrs = [vcf_path.split('/')[-2] for vcf_path in input_vcf_paths2]
-#     i = 0
-#     exposure_concat_chunks = []
-#     for chunk in ['chunk1', 'chunk2', 'chunk3']:
-#         mutsig_path = f'{mutsig_path_prefix}_{chunk}.pkl'
-#         init = ts.load_dump(mutsig_path)
-#         rows = [f'ts{n+1:02}' for n in range(init.rank)]
-#         ids = patient_ids[i: i + init.sample_indices.shape[0]]
-#         chrs_chunk = chrs[i: i + init.sample_indices.shape[0]]
-#         exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
-#         exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
-#         exposure_df = exposure_df.add_prefix('mutsig_count_')
-#         exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
-#         exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
-#         exposure_concat['chr'] = chrs_chunk
-#         exposure_concat['EIBS'] = exposure_concat.index
-#         exposure_concat_chunks.append(exposure_concat)
-#         i += init.sample_indices.shape[0]
-#     return pd.concat(exposure_concat_chunks, axis=0)
 
 def aggregate_global(
         mutsig_global_path,

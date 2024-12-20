@@ -4,7 +4,7 @@ if(!require(reticulate)){
     install.packages("reticulate")
     library(reticulate)
 }
-source_python('scripts/constants.py')
+source_python('post_processing/scripts/constants.py')
 
 genomePath <-  file.path(refs_dir, "GRCh38/GRCh38.primary_assembly.genome_X.fa") #"genome.fa.gz" # path to the reference genome
 # Set constants

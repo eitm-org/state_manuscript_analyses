@@ -1,12 +1,11 @@
 import os
 import subprocess
-import sys
 
-from constants import flat_results_dir
+from scripts.constants import flat_results_dir
 
 
 def refit_hg002_fp():
-    output_path = 'tensorsignatures_data_test'
+    output_path = 'tensorsignatures_data'
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     base_path = os.path.join(flat_results_dir, f'STATE_HG002_vcfs/fp')

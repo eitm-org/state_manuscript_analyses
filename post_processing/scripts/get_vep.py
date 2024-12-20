@@ -2,7 +2,7 @@ import os
 import glob
 import subprocess
 
-from constants import flat_results_dir
+from scripts.constants import flat_results_dir
 
 def main():
     VEP_COMMAND = "vep -i {} -o {} --cache --force_overwrite --sift b --polyphen b -v --plugin AlphaMissense,file=/data/xchen/refs/vep/AlphaMissense_hg38.tsv.gz,cols=all"

@@ -6,7 +6,8 @@ import pandas as pd
 from SigProfilerAssignment import Analyzer as Analyze
 from SigProfilerMatrixGenerator import install as genInstall
 genInstall.install('GRCh38', rsync=False, bash=True)
-from constants import flat_results_dir
+
+from scripts.constants import flat_results_dir
 
 def process_sample_names(df, col):
     df['EIBS'] = df[col]

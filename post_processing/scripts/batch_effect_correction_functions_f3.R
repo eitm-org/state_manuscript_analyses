@@ -15,7 +15,7 @@ if(!require(reticulate)){
   install.packages("reticulate")
   library(reticulate)
 }
-source_python('scripts/constants.py')
+source_python('post_processing/scripts/constants.py')
 
 global = read.csv("aggregate_data/aggregate_snv_patient_global_f3.csv")
 

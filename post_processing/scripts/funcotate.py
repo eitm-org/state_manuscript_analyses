@@ -2,7 +2,7 @@ import glob
 import os
 import subprocess
 
-from constants import refs_dir, flat_results_dir
+from scripts.constants import refs_dir, flat_results_dir
 
 def main():
     # NOTE: in your {refs_dir} download funcotator_dataSources.v1.7.20200521s from https://console.cloud.google.com/storage/browser/broad-public-datasets/funcotator/funcotator_dataSources.v1.7.20200521g?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))

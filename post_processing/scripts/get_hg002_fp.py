@@ -2,7 +2,7 @@ import glob
 import os
 import subprocess
 
-from constants import HG002_fully_resolved_path, workflow_results_dir
+from scripts.constants import HG002_fully_resolved_path, workflow_results_dir
 
 def main():
     ISEC_CMD = """bcftools isec -f PASS {input_file} {HG002_fully_resolved_path} -p {output_path}\n"""

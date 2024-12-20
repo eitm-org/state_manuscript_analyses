@@ -1,7 +1,7 @@
 import os
 import glob
 
-from constants import workflow_results_dir, flat_results_dir
+from scripts.constants import workflow_results_dir, flat_results_dir
 
 def main():
     hg002_fp = glob.glob(os.path.join(workflow_results_dir, '*', 'results', 'variant_calling/clairs', 'HG002*', 'fp/0000.vcf'))

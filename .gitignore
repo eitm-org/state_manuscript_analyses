@@ -172,6 +172,8 @@ STATE_vcfs_f3/
 STATE_vcfs_f3_region_filtered/
 STATE_vcfs_f3_region_filtered_funcotated
 noisy_coverage_regions/
+cosmics_sig_data/
+tensorsignatures_data/
 constants.RData
 *.csv
 *.xlsx

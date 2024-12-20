@@ -8,7 +8,7 @@ import numpy as np
 import warnings
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
-from constants import refs_dir
+from scripts.constants import refs_dir
 
 hg38_bed_path = os.path.join(refs_dir, 'GRCh38/GRCh38.primary_assembly.genome_X_chr.bed')
 

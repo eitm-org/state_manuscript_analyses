@@ -1,5 +1,9 @@
 tensorsignatures @ git+https://github.com/eitm-org/tensorsignatures.git
 alive-progress==3.1.5
 apiwrapper
-SigProfilerAssignment
 cyvcf2
+openpyxl
+seaborn
+SigProfilerAssignment
+
+

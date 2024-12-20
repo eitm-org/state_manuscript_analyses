@@ -5,7 +5,7 @@ from cyvcf2 import VCF, Writer
 import pandas as pd
 from collections import defaultdict
 
-from constants import workflow_results_dir
+from scripts.constants import workflow_results_dir
 
 def apply_somatic_filter0(input_vcf_path, output_vcf_path, output_failed_vcf_path):
     mapping_filter_dict = {

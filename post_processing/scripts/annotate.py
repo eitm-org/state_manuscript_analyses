@@ -2,7 +2,7 @@ import glob
 import os
 import subprocess
 
-from constants import workflow_results_dir, refs_dir
+from scripts.constants import workflow_results_dir, refs_dir
 
 def main():
     FILTER_CMD = """bcftools view -f PASS {} -o {}\n"""
