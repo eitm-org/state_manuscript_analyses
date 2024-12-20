@@ -32,14 +32,6 @@ COHORT_PC = 'past_cancer'
 COHORT_AC = 'active_cancer'
 CLINICAL_COHORT_MAPPING = {'No Cancer': COHORT_NC, 'Past Cancer': COHORT_PC, 'Active': COHORT_AC}
 
-
-aggregate_snv_Mbps_f3_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_Mbps_f3.csv'
-aggregate_snv_chrom_f3_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_chrom_f3.csv'
-aggregate_snv_global_f3_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_global_f3.csv'
-
-aggregate_snv_Mbps_f1_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_Mbps_f1.csv'
-aggregate_snv_chrom_f1_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_chrom_f1.csv'
-aggregate_snv_global_f1_path = '/home/xchen@okta-oci.eitm.org/projects/STATE_analyses/data/aggregate_snv_patient_global_f1.csv'
 sbs_artifacts = ['SBS27', 'SBS43', 'SBS45', 'SBS46', 'SBS47', 'SBS48', 'SBS49', 'SBS50', 'SBS51', 'SBS52', 'SBS53', 'SBS54', 'SBS55', 'SBS56', 'SBS57', 'SBS58', 'SBS59', 'SBS60', 'SBS95']
 
 def derive_final_metrics_uncorrrected(data, error_model=False):
@@ -95,10 +87,10 @@ def derive_final_metrics(data, error_model=True):
     num[num < 0] = 0
     return data
 
-def read_agg_snv(path):
+def read_agg_snv(path, subjects, manuscript_sample_prep_file):
     agg_snv = pd.read_csv(path)
-    agg_snv['date'] = pd.to_datetime(agg_snv.date, format='%Y-%m-%d', errors='ignore')
-    agg_snv['date'] = agg_snv['date'].dt.date
+    # agg_snv['date'] = pd.to_datetime(agg_snv.date, format='%Y-%m-%d', errors='ignore')
+    # agg_snv['date'] = agg_snv['date'].dt.date
     # agg_snv.sort_values(['month', 'date'], inplace=True)
     if 'chr' in agg_snv.columns:
         agg_snv['chr_num'] = pd.to_numeric(agg_snv.chr.str[3:].replace('X', '23').replace('Y', '24'))
@@ -106,39 +98,26 @@ def read_agg_snv(path):
     for col in ['draw_id', 'draw_times', 'cohort']:
         if col in agg_snv.columns:
             agg_snv.drop(columns=col, inplace=True)
-    return eid_to_patient_cohort(agg_snv).reset_index()
+    
+    draw_mapping = get_draw_mapping(subjects, manuscript_sample_prep_file)
+    return eid_to_patient_cohort(agg_snv, draw_mapping).reset_index()
 
-def join_clinical(agg_snv):
-    # rcc_path = '/home/xchen@okta-oci.eitm.org/dropbox/Redcap_Cloud_STATE/rcc_user_records_20240124_0923/STATE_Enrollment/STATE_Enrollment.csv'
-    # rcc = pd.read_csv(rcc_path)
-    # agg_snv = agg_snv.merge(rcc, left_on='draw_id', right_on='participantId', how='left')
-    agg_snv['age_high'] = agg_snv.draw_age >= 65
-    htx_path = '/home/xchen@okta-oci.eitm.org/dropbox/Redcap_Cloud_STATE/archive/rcc_user_records_20240603_0922/STATE_History_and_Diagnosis/STATE_History.csv'
-    htx = pd.read_csv(htx_path)[['STATE_Alc_Consumption', 'STATE_Tobacco_History', 'participantId']]
-    br_htx_path = '/home/xchen@okta-oci.eitm.org/dropbox/Redcap_Cloud_STATE/rcc_user_records_20240124_0923/STATE_History_and_Diagnosis_Breast/STATE_History.csv'
-    br_htx = pd.read_csv(br_htx_path)[['STATE_Alc_Consumption', 'STATE_Tobacco_History', 'participantId']]
-    htx = pd.concat([htx, br_htx], axis=0)
-    agg_snv = agg_snv.merge(htx, left_on='draw_id', right_on='participantId', how='left')
-    # agg_snv.drop(columns='cohort_other')
-    return agg_snv
-
-def get_select_draw_ids():
-    draw_mapping = get_draw_mapping()
+def get_select_draw_ids(subjects, manuscript_sample_prep_file):
+    draw_mapping = get_draw_mapping(subjects, manuscript_sample_prep_file)
     select_draw_ids = []
     for key, (did, dt, co) in draw_mapping.items():
         if dt >= 3 and did not in select_draw_ids:
             select_draw_ids.append(did)
     return select_draw_ids
 
-def get_draw_mapping():
+def get_draw_mapping(subjects, manuscript_sample_prep_file):
     #read tables
     subjects = pd.read_csv(subjects)
     msp = pd.read_csv(manuscript_sample_prep_file)
-    mapping_path = '/home/xchen@okta-oci.eitm.org/dropbox/STATE_Draw_Event_Data/STATE Draws - Deidentified_cohorts.xlsx'
     #filter out HG002 columns (they have Project_Participant_ID = NaN)
     msp = msp[pd.notnull(msp['Project_Participant_ID'])]
     #merge age and cohort into the data table
-    all_df = msp.merge(subjects, how = 'outer', left_on = 'Project_Participant_ID', right_on = 'Project_Participant_ID')
+    all_df = msp.merge(subjects, how = 'outer', left_on = 'Project_Participant_ID', right_on = 'STATE_PPID')
     #truncate Sample to EIBS-{*}{5}
     all_df['Sample'] = all_df['Sample'].str.slice(0, 10)
     #add visit number column
@@ -149,13 +128,13 @@ def get_draw_mapping():
     #make it into a dictionary
     all_df = all_df.to_numpy()
     # all_df = all_df.to_dict('series')
-    all_df = dict((x[0], (x[1], x[2], x[3], x[4], x[5])) for x in all_df[1:])
-    return draw_mapping
+    all_df = dict((x[0], (x[1], x[2], x[3], x[4], x[5])) for x in all_df[0:])
+    return all_df
 
-
-def eid_to_patient_cohort(df):
-    draw_mapping = get_draw_mapping()
+def eid_to_patient_cohort(df, draw_mapping):
     df_copy = df.copy()
+    eibs_to_drop =  set(df.index.tolist()) - set(draw_mapping.keys())
+    df_copy = df.drop(index=eibs_to_drop)
     draw_id = [draw_mapping[idx[0]][0] for idx in df_copy.index.str.split('_', n=1)]
     draw_times = [draw_mapping[idx[0]][1] for idx in df_copy.index.str.split('_', n=1)]
     cohorts = [draw_mapping[idx[0]][2] for idx in df_copy.index.str.split('_', n=1)]
@@ -171,7 +150,6 @@ def eid_to_repeats(df):
     df_copy.index = [idx if idx in repeats else 'other' for idx in df_copy.index.str.split('_', expand=True).get_level_values(0)]
     df_copy.sort_index(inplace=True)
     return df_copy
-
 
 def parse_date(df):
     dates = (df\
@@ -258,30 +236,24 @@ def calculate_slopes(agg_snv_global, cols, meta_cols):
                 # data[:, f'{col}_r'] = r
                 # data[:, f'{col}_p'] = p
             dynamic_data.append(data_for_slope)
-    return pd.concat(dynamic_data, axis = 0)
+    return dynamic_data #pd.concat(dynamic_data, axis = 0)
 
 def mutsig_global_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
     input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, '*.vcf'))
-    # input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, 'full_genome', '*.ann.filtered[1,3].vcf'))
+
     input_vcf_paths2.sort()
     patient_ids = [vcf_path.split('/')[-1].split('_vs_')[0] for vcf_path in input_vcf_paths2]
     i = 0
-    exposure_concat_chunks = []
-    for chunk in ['chunk1', 'chunk2', 'chunk3']:
-        mutsig_path = f'{mutsig_path_prefix}_{chunk}.pkl'
-        init = ts.load_dump(mutsig_path)
-        rows = [f'ts{n+1:02}' for n in range(init.rank)]
-        ids = patient_ids[i: i + init.sample_indices.shape[0]] #+ fp_ids + fp_pileup_ids
-        exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
-        exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
-        exposure_df = exposure_df.add_prefix('mutsig_count_')
-        exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
-        exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
-        exposure_concat['EIBS'] = exposure_concat.index
-        exposure_concat_chunks.append(exposure_concat)
-        i += init.sample_indices.shape[0]
-    return pd.concat(exposure_concat_chunks, axis=0)
+    mutsig_path = f'{mutsig_path_prefix}.pkl'
+    init = ts.load_dump(mutsig_path)
+    rows = [f'ts{n+1:02}' for n in range(init.rank)]
+    ids = patient_ids[i: i + init.sample_indices.shape[0]] #+ fp_ids + fp_pileup_ids
 
+    exposure_df = pd.DataFrame(init.E.reshape(init.rank, init.sample_indices.shape[0]), columns = ids, index = rows).T
+    exposure_df_norm = exposure_df.divide(exposure_df.sum(axis=1), axis=0)
+    exposure_df = exposure_df.add_prefix('mutsig_count_')
+    exposure_df_norm = exposure_df_norm.add_prefix('mutsig_ratio_')
+    exposure_concat = pd.concat([exposure_df, exposure_df_norm], axis=1)
+    exposure_concat['EIBS'] = exposure_concat.index
 
-
-
+    return exposure_concat
