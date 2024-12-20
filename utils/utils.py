@@ -131,10 +131,12 @@ def get_draw_mapping(subjects, manuscript_sample_prep_file):
     all_df = dict((x[0], (x[1], x[2], x[3], x[4], x[5])) for x in all_df[0:])
     return all_df
 
+# this is not working
 def eid_to_patient_cohort(df, draw_mapping):
+    all_eibs = [idx[0] for idx in df.index.str.split('_', n=1)]
     df_copy = df.copy()
-    eibs_to_drop =  set(df.index.tolist()) - set(draw_mapping.keys())
-    df_copy = df.drop(index=eibs_to_drop)
+    df_copy['EIBS_short'] = all_eibs
+    df_copy = df_copy[df_copy.EIBS_short.isin(set(draw_mapping.keys()))]
     draw_id = [draw_mapping[idx[0]][0] for idx in df_copy.index.str.split('_', n=1)]
     draw_times = [draw_mapping[idx[0]][1] for idx in df_copy.index.str.split('_', n=1)]
     cohorts = [draw_mapping[idx[0]][2] for idx in df_copy.index.str.split('_', n=1)]
@@ -142,6 +144,7 @@ def eid_to_patient_cohort(df, draw_mapping):
     draw_age = [draw_mapping[idx[0]][4] for idx in df_copy.index.str.split('_', n=1)]
     df_copy.index = pd.MultiIndex.from_tuples(zip(draw_id, draw_times, cohorts, draw_month, draw_age), names=["draw_id", "draw_times", "cohort", "draw_month", "draw_age"])
     # df_copy.sort_index(inplace=True)
+    del df_copy['EIBS_short']
     return df_copy
 
 def eid_to_repeats(df):
@@ -236,7 +239,7 @@ def calculate_slopes(agg_snv_global, cols, meta_cols):
                 # data[:, f'{col}_r'] = r
                 # data[:, f'{col}_p'] = p
             dynamic_data.append(data_for_slope)
-    return dynamic_data #pd.concat(dynamic_data, axis = 0)
+    return pd.concat(dynamic_data, axis = 0)
 
 def mutsig_global_to_df(mutsig_path_prefix, VCF_BASE_DIR) -> pd.DataFrame:
     input_vcf_paths2 = glob.glob(os.path.join(VCF_BASE_DIR, '*.vcf'))
