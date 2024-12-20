@@ -370,11 +370,11 @@ ggsave('plots/fig6/snv_vs_age.png', snv_vs_age)
 ```{r fig7_import_data}
 # Figure 7: Histograms of slopes from individual models
 dynamic_df_grp_melt <- read_csv(file.path("input_data", "fig7", "slopes_intercepts.csv"))
-#filter dynamic_df_grp_melt for only sbsXX_ratio columns
+#filter dynamic_df_grp_melt for only sbsXX_count columns
 for_plot <- dynamic_df_grp_melt %>%
-  filter(grepl("SBS[[:digit:]]+_ratio", dynamic_df_grp_melt$label)) %>%
-  mutate(label_nice = str_replace_all(str_to_title(str_replace_all(label, "_|ratio", " ")), "Sbs", "SBS"),
-         sbs_ratio_num = as.numeric(str_extract(label, "[:digit:]+")))
+  filter(grepl("SBS[[:digit:]]+_count", dynamic_df_grp_melt$label)) %>%
+  mutate(label_nice = str_replace_all(str_to_title(str_replace_all(label, "_|count", " ")), "Sbs", "SBS"),
+         sbs_count_num = as.numeric(str_extract(label, "[:digit:]+")))
 
 for_plot["dummy"] <- 0
 symmetric_max <- max(abs(for_plot$slope))
