@@ -78,3 +78,19 @@ Primary requirements of VEP are as follows,
 
 After installing the dependencies, run the installer PERL script. 
 Detailed instructions can be found [here](https://useast.ensembl.org/info/docs/tools/vep/script/vep_download.html#installer)
+
+## Environment setup
+1. run `git clone https://github.com/eitm-org/state_manuscript_analyses.git && cd state_manuscript_analyses`
+2. run `make venv && make requirements`
+3. activate venv by running `source venv/bin/activate`
+
+## Data Setup
+1. Download and unzip the references data folder, HG002_fully_resolved folder, and samples.csv from zenodo [ineset link here]
+2. Download funcotator_dataSources.v1.7.20200521s from [here](https://console.cloud.google.com/storage/browser/broad-public-datasets/funcotator/funcotator_dataSources.v1.7.20200521g?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))) and place it inside of the refs folder previously downloaded from zenodo. 
+3. Modify paths in `post_processing/scripts/constants.py` to point to the respecting data paths.
+4. Download and unzip tensig.zip from [here][https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view] and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder.
+
+## To replicate the post processing pipeline results:
+1. With venv activated, cd into `post_processing`.
+2. Download and unzip STATE_HG002_vcfs.zip and STATE_vcfs_f3_region_filtered.zip and place them in your current working directory.
+3. Start the `post_processing_wf.sh` from line 15 (`python scripts/funcotate.py`) and run until the end. The pipeline cannot be replicated from the begining because we cannot release the unfiltered vcfs due to them possibly containing germline variants. However the dataset did release can be processed for functional annotation and additional characterization.
