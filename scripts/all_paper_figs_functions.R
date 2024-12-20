@@ -540,8 +540,8 @@ plot_lin_mods <- function(colname) {
   mean_lm_df <- data.frame(x = seq(from = min(for_plot$draw_month), to = max(for_plot$draw_month), length.out = 100)) %>%
     mutate(y = mean_int + mean_slope*x)
   
-  nice_colname <- str_remove_all(str_replace_all(str_to_title(str_replace_all(colname, "_", " ")), "Sbs", "SBS"), "Adj3|Ratio")
-  nice_colname <- paste("Proportion", nice_colname)
+  nice_colname <- str_remove_all(str_replace_all(str_to_title(str_replace_all(colname, "_", " ")), "Sbs", "SBS"), " Count|Adj3|Ratio")
+  nice_colname <- paste(nice_colname, "Activity")
   ymax <- max(for_plot$yvar, na.rm = TRUE) + max(for_plot$yvar, na.rm = TRUE)/5
 
   fig7b_lin <- ggplot() +
