@@ -178,6 +178,7 @@ constants.RData
 *.csv
 *.xlsx
 logs/
+all_paper_figs.docx
 
 #Rproject
 *.Rproj

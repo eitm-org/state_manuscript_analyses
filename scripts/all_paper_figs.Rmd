@@ -117,7 +117,7 @@ Fig 1A: Recovery of single nucleotide variants observed in a pure sample of BT-4
 
 This figure uses the number of SNVs in the intersection between the 100% BT474 and 1, 5, and 10% BT474
 
-```{r figurename, echo=FALSE, out.width = '90%'}
+```{r venn_fig, echo=FALSE, out.width = '90%'}
 knitr::include_graphics("./knitting_files/images/venn.png")
 ```
 
@@ -418,11 +418,11 @@ names(chosen_sbs_plots) <- chosen_sbs
 chosen_sbs_plots
 ```
 
-```{r figurename, echo=FALSE, fig.cap="Figure S1: Filtration Schema", out.width = '90%'}
+```{r schema_fig, echo=FALSE, fig.cap="Figure S1: Filtration Schema", out.width = '90%'}
 knitr::include_graphics("./knitting_files/images/filtration_schema.png")
 ```
 
-```{r figurename, echo=FALSE, fig.cap="Figure S2: Description of the workpostflow and processing times", out.width = '90%'}
+```{r workflow_fig, echo=FALSE, fig.cap="Figure S2: Description of the workpostflow and processing times", out.width = '90%'}
 knitr::include_graphics("./knitting_files/images/workflow.png")
 ```
 
