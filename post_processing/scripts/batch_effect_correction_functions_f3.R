@@ -15,7 +15,6 @@ if(!require(reticulate)){
   install.packages("reticulate")
   library(reticulate)
 }
-setwd('~/projects/state_manuscript_analyses/post_processing')
 source_python('scripts/constants.py')
 
 global = read.csv("aggregate_data/aggregate_snv_patient_global_f3.csv")

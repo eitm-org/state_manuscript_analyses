@@ -1,10 +1,11 @@
 import os
+import shutil
+
 
 import pandas as pd
 from SigProfilerAssignment import Analyzer as Analyze
 from SigProfilerMatrixGenerator import install as genInstall
 genInstall.install('GRCh38', rsync=False, bash=True)
-
 from constants import flat_results_dir
 
 def process_sample_names(df, col):
@@ -22,6 +23,12 @@ def main():
         vcf_path = os.path.join(flat_results_dir, f'STATE_vcfs_{filternum}_region_filtered', 'full_genome')
         Analyze.cosmic_fit(samples = vcf_path, output = f'cosmics_sig_data/mut_sig_{filternum}', input_type = 'vcf', context_type="96",
                         genome_build="GRCh38", collapse_to_SBS96 = False)
+        try:
+            shutil.rmtree('cosmics_sig_data/mut_sig_{filternum}/output')
+            shutil.rmtree('cosmics_sig_data/mut_sig_{filternum}/input')
+            shutil.rmtree('cosmics_sig_data/mut_sig_{filternum}/logs')
+        except OSError as e:
+            print("Error: %s - %s." % (e.filename, e.strerror))
         assignment_solution_activities = pd.read_csv(f'cosmics_sig_data/mut_sig_{filternum}/Assignment_Solution/Activities/Assignment_Solution_Activities.txt', sep = '\t')
         assignment_solution_activities = process_sample_names(assignment_solution_activities, 'Samples') 
         assignment_solution_activities = assignment_solution_activities.drop(columns = ['EIBS'])
@@ -37,5 +44,12 @@ def main():
     hg002_fp_vcfs = os.path.join(flat_results_dir,'STATE_HG002_vcfs/fp')
     Analyze.cosmic_fit(samples = hg002_fp_vcfs, output = 'cosmics_sig_data/mut_sig_hg002_fp', input_type = 'vcf', context_type="96",
                    genome_build="GRCh38", collapse_to_SBS96 = False)
+    try:
+        shutil.rmtree('cosmics_sig_data/mut_sig_hg002_fp/output')
+        shutil.rmtree('cosmics_sig_data/mut_sig_hg002_fp/input')
+        shutil.rmtree('cosmics_sig_data/mut_sig_hg002_fp/logs')
+    except OSError as e:
+        print("Error: %s - %s." % (e.filename, e.strerror))
+
 if __name__ == "__main__":
     main()

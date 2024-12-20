@@ -26,8 +26,6 @@ def main():
     filternums = ['f3']
     for filternum in filternums:
         merged_global_patient_path = f'aggregate_data/aggregate_snv_patient_global_{filternum}.csv'
-        merged_chrom_patient_path = f'aggregate_data/aggregate_snv_patient_chrom_{filternum}.csv'
-        merged_Mbps_patient_path = f'aggregate_date/aggregate_snv_patient_Mbps_{filternum}.csv'
         VCF_BASE_DIR = os.path.join(flat_results_dir, f'STATE_vcfs_{filternum}_region_filtered_funcotated')
         VEP_BASE_DIR = os.path.join(flat_results_dir, f'STATE_vcfs_{filternum}_region_filtered/full_genome_vep')
 
@@ -42,8 +40,8 @@ def main():
         vep_chrom_path = f'aggregate_data/aggregate_vep_chrom_{filternum}.csv'
         vep_Mbps_path = f'aggregate_data/aggregate_vep_Mbps_{filternum}.csv'
 
-        # aggregate_funcotator(funcotator_global_path, funcotator_chrom_path, funcotator_Mbps_path, VCF_BASE_DIR)
-        # aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR)
+        aggregate_funcotator(funcotator_global_path, funcotator_chrom_path, funcotator_Mbps_path, VCF_BASE_DIR)
+        aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR)
         aggregate_global(mutsig_global_path_prefix, funcotator_global_path, vep_global_path, cosmic_global_path, merged_global_patient_path, VCF_BASE_DIR)
 
 
