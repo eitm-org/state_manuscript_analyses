@@ -23,6 +23,8 @@ def aggregate_vep(vep_global_path, vep_chrom_path, vep_Mbps_path, VEP_BASE_DIR):
 
 
 def main():
+    if not os.path.exists('aggregate_data'): 
+        os.makedirs('aggregate_data')
     filternums = ['f3']
     for filternum in filternums:
         merged_global_patient_path = f'aggregate_data/aggregate_snv_patient_global_{filternum}.csv'

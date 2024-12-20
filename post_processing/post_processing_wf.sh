@@ -15,7 +15,8 @@ echo "add functional annotations"
 python post_processing/scripts/funcotate.py
 echo "refit tensorignatures"
 python post_processing/scripts/refit_tensig.py
-python scripts/get_vep.py
+echo "annotate with VEP"
+python post_processing/scripts/get_vep.py
 echo "assign cosmic signatures"
 python post_processing/scripts/assign_cosmic.py 
 echo "aggregate SNV metrics"

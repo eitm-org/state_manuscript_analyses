@@ -93,8 +93,7 @@ def aggregate_funcotator_chr(vcf_dir, debug=False):
             aggregate_gencode(func_df_gencode, aggregate_func_data)
     return pd.DataFrame(aggregate_func_data)
 
-
-def aggregate_funcotator_Mpbs(vcf_dir, debug=True):
+def aggregate_funcotator_Mbps(vcf_dir, debug=True):
     aggregate_func_data = defaultdict(list)
     for vcf_path in glob.glob(os.path.join(vcf_dir, '*.vcf')):
         eibs = vcf_path.split('/')[-1].split('_vs_')[0]
