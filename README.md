@@ -87,11 +87,48 @@ Detailed instructions can be found [here](https://useast.ensembl.org/info/docs/t
 
 
 ## Data Setup
-1. Download and unzip the references data folder, HG002_fully_resolved folder, and samples.csv from zenodo [ineset link here]
+### Genome References 
+1. `refs_dir` expects the following directory structure
+    refs_dir/
+        af-only-gnomad.hg38.vcf.gz
+        af-only-gnomad.hg38.vcf.gz.tbi
+        GRCh38/
+            GRCh38.primary_assembly.genome_X.dict
+            GRCh38.primary_assembly.genome_X.fa
+            GRCh38.primary_assembly.genome_X.fa.fai
+            GRCh38.primary_assembly.genome_X_chr.bed
+        broad_resources/
+            Homo_sapiens_assembly38.dbsnp138.vcf.gz
+            Homo_sapiens_assembly38.dbsnp138.vcf.gz.tbi
+            hapmap_3.3.hg38.vcf.gz
+            hapmap_3.3.hg38.vcf.gz.tbi
+            1000G_phase1.snps.high_confidence.hg38.vcf.gz
+            1000G_phase1.snps.high_confidence.hg38.vcf.gz.tbi
+    - af-only-gnomad.hg38 files can be downloaded [here](https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-hg38?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))).
+    - Files within GRCh38 can be downloaded here.
+    - Files within broad_resources can be downloaded [here](https://console.cloud.google.com/storage/browser/genomics-public-data/resources/broad/hg38/v0;tab=objects?prefix=&forceOnObjectsSortingFiltering=false).
 2. Download funcotator_dataSources.v1.7.20200521s from [here](https://console.cloud.google.com/storage/browser/broad-public-datasets/funcotator/funcotator_dataSources.v1.7.20200521g?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))) and place it inside of the refs folder previously downloaded from zenodo. 
-3. Modify paths in `post_processing/scripts/constants.py` to point to the respecting data paths.
-4. Download and unzip tensig.zip from [here][https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view] and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder.
-5. rerun `make install`.
+
+### Bedfiles
+1. `bedfiles_dir` expects the following directory structure
+    bedfiles_dir/
+        problematic_regions/
+            ENCODE_blacklist2.bed
+            GRC_exclusions.bed
+            centromeres.bed
+            cytoband.bed
+            repeatmasker.bed
+            unusual_regions.bed
+        adaptive/
+            pathogenicGRCh38_20220906.bed
+    - Bedfiles within problematic_regions are downloadable through https://genome.ucsc.edu/ inside artifact_exclusion
+    - For pathogenicGRCh38_20220906.bed, download from zenodo [here](https://zenodo.org/uploads/14399982) renamed as artifact_exclusion.bed.
+
+### Zenodo downloads
+1. Download and unzip the references data folder, HG002_fully_resolved folder, and samples.csv from zenodo [ineset link here]
+2. Modify paths in `post_processing/scripts/constants.py` to point to the respecting data paths.
+3. Download and unzip tensig.zip from [here][https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view] and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder.
+4. rerun `make install`.
 
 
 ## To replicate the post processing pipeline results:
