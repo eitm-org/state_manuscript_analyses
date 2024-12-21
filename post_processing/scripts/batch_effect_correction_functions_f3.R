@@ -1,15 +1,50 @@
 ## Import Library ---------
 
 # remotes::install_github("stopsack/batchtma") # if batchtma not installed
-library(remotes)
-library(batchtma)
-library(tidyverse)
-library(ggplot2)
-library(patchwork)
-library(DBI)
-library(RSQLite)
-library(Gmisc)
-library(dplyr)
+if(!require(remotes)){
+  install.packages(remotes)
+  library(remotes)
+}
+
+if(!require(batchtma)){
+  install.packages(batchtma)
+  library(batchtma)
+}
+
+if(!require(tidyverse)){
+  install.packages(tidyverse)
+  library(tidyverse)
+}
+
+if(!require(ggplot2)){
+  install.packages(ggplot2)
+  library(ggplot2)
+}
+
+if(!require(patchwork)){
+  install.packages(patchwork)
+  library(patchwork)
+}
+
+if(!require(DBI)){
+  install.packages(DBI)
+  library(DBI)
+}
+
+if(!require(RSQLite)){
+  install.packages(RSQLite)
+  library(RSQLite)
+}
+
+if(!require(Gmisc)){
+  install.packages(Gmisc)
+  library(Gmisc)
+}
+
+if(!require(Gmisc)){
+  install.packages(Gmisc)
+  library(dplyr)
+}
 
 if(!require(reticulate)){
   install.packages("reticulate")
