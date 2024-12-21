@@ -109,7 +109,7 @@ Detailed instructions can be found [here](https://useast.ensembl.org/info/docs/t
           ...
    ```
     - af-only-gnomad.hg38 files can be downloaded [here](https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-hg38?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))).
-    - Files within GRCh38 can be downloaded here.
+    - Files within GRCh38 can be downloaded [here](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/).
     - Files within broad_resources can be downloaded [here](https://console.cloud.google.com/storage/browser/genomics-public-data/resources/broad/hg38/v0;tab=objects?prefix=&forceOnObjectsSortingFiltering=false).
     - Download and unzip the entire funcotator_dataSources.v1.7.20200521s folder from [here](https://console.cloud.google.com/storage/browser/broad-public-datasets/funcotator/funcotator_dataSources.v1.7.20200521g?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))).
 
