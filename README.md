@@ -133,8 +133,7 @@ Detailed instructions can be found [here](https://useast.ensembl.org/info/docs/t
 
 ### Other downloads
 1. Download and unzip the references data folder, HG002_fully_resolved folder, and samples.csv from zenodo [ineset link here].
-2. Download and unzip tensig.zip from [here][https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view] and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder.
-
+2. Download and unzip tensig.zip from [here](https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view) and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder. This file was originally published by the [gerstrung lab](https://github.com/gerstung-lab/tensorsignatures) and it is required to run our modified version of [tensorsignatures](https://github.com/eitm-org/tensorsignatures/tree/master) for multi-dimentional mutational signatures extraction.
 ### Finally
 1. Modify paths in `post_processing/scripts/constants.py` to point to the respecting data paths.
 2. rerun `make install`.
