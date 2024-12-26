@@ -4,7 +4,7 @@ Tooling and notebooks for analyzing STATE data
 The [nf-core/sarek](https://github.com/nf-core/sarek) based pipeline implementing [ClairS](https://github.com/HKU-BAL/ClairS) used to generate somatic variant calls of Nanopore reads can be obtained at https://github.com/eitm-org/sarek_pipeline 
 
 
-Scripts to make manuscript plots are organized like this:
+Scripts to make manuscript plots are organized as follows:
 
 ![STATE figs](https://github.com/user-attachments/assets/fa17e95d-353f-4f96-a7ea-ce51a9c78546)
 
@@ -131,11 +131,11 @@ Detailed instructions can be found [here](https://useast.ensembl.org/info/docs/t
             pathogenicGRCh38_20220906.bed
    ```   
     - Bedfiles within problematic_regions are downloadable through https://genome.ucsc.edu/ inside artifact_exclusion.
-    - For pathogenicGRCh38_20220906.bed, download from our Zenodo repository [here](https://dx.doi.org/10.5281/zenodo.14399982) renamed as artifact_exclusion.bed.
+    - For pathogenicGRCh38_20220906.bed, download from our Zenodo repository [here](https://dx.doi.org/10.5281/zenodo.14399982), renamed as artifact_exclusion.bed.
 
 ### Other downloads
 1. Download and unzip the references data folder, HG002_fully_resolved folder, and samples.csv from our Zenodo repository [here](https://dx.doi.org/10.5281/zenodo.14399982).
-2. Download and unzip tensig.zip from [here][https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view] and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder.
+2. Download and unzip tensig.zip from [here](https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view) and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder.
 
 ### Finally
 1. Modify paths in `post_processing/scripts/constants.py` to point to the respecting data paths.
