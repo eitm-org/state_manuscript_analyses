@@ -1,6 +1,8 @@
 # STATE_analyses
 Tooling and notebooks for analyzing STATE data
 
+The [nf-core/sarek](https://github.com/nf-core/sarek) based pipeline implementing [ClairS](https://github.com/HKU-BAL/ClairS) used to generate somatic variant calls of Nanopore reads can be obtained at https://github.com/eitm-org/sarek_pipeline 
+
 
 Scripts to make manuscript plots are organized like this:
 
@@ -108,10 +110,10 @@ Detailed instructions can be found [here](https://useast.ensembl.org/info/docs/t
        funcotator_dataSources.v1.7.20200521s
           ...
    ```
-    - af-only-gnomad.hg38 files can be downloaded [here](https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-hg38?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))).
-    - Files within GRCh38 can be downloaded [here](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/).
-    - Files within broad_resources can be downloaded [here](https://console.cloud.google.com/storage/browser/genomics-public-data/resources/broad/hg38/v0;tab=objects?prefix=&forceOnObjectsSortingFiltering=false).
-    - Download and unzip the entire funcotator_dataSources.v1.7.20200521s folder from [here](https://console.cloud.google.com/storage/browser/broad-public-datasets/funcotator/funcotator_dataSources.v1.7.20200521g?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))).
+    - af-only-gnomad.hg38 files can be downloaded from the gnomAD Google Cloud Public Datasets [here](https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-hg38?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))).
+    - Files within GRCh38 can be downloaded fromm GENCODE [here](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/).
+    - Files within broad_resources can be downloaded from the Broad Institute Google Cloud Public Datasets [here](https://console.cloud.google.com/storage/browser/genomics-public-data/resources/broad/hg38/v0;tab=objects?prefix=&forceOnObjectsSortingFiltering=false).
+    - Download and unzip the entire funcotator_dataSources.v1.7.20200521s folder from Broad Institute Google Cloud Public Datasets [here](https://console.cloud.google.com/storage/browser/broad-public-datasets/funcotator/funcotator_dataSources.v1.7.20200521g?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))).
 
 ### Bedfiles
 1. `bedfiles_dir` expects the following directory structure
@@ -129,16 +131,17 @@ Detailed instructions can be found [here](https://useast.ensembl.org/info/docs/t
             pathogenicGRCh38_20220906.bed
    ```   
     - Bedfiles within problematic_regions are downloadable through https://genome.ucsc.edu/ inside artifact_exclusion.
-    - For pathogenicGRCh38_20220906.bed, download from zenodo [here](https://zenodo.org/uploads/14399982) renamed as artifact_exclusion.bed.
+    - For pathogenicGRCh38_20220906.bed, download from our Zenodo repository [here](https://dx.doi.org/10.5281/zenodo.14399982) renamed as artifact_exclusion.bed.
 
 ### Other downloads
-1. Download and unzip the references data folder, HG002_fully_resolved folder, and samples.csv from zenodo [ineset link here].
-2. Download and unzip tensig.zip from [here](https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view) and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder. This file was originally published by the [gerstrung lab](https://github.com/gerstung-lab/tensorsignatures) and it is required to run our modified version of [tensorsignatures](https://github.com/eitm-org/tensorsignatures/tree/master) for multi-dimentional mutational signatures extraction.
+1. Download and unzip the references data folder, HG002_fully_resolved folder, and samples.csv from our Zenodo repository [here](https://dx.doi.org/10.5281/zenodo.14399982).
+2. Download and unzip tensig.zip from [here][https://drive.google.com/file/d/1jZVpvFOP8lOLKY1pTt1m8AUK9kyD-3u3/view] and place *only* the constants.Rdata file in to `post_processing/scripts/tensig/` folder.
+
 ### Finally
 1. Modify paths in `post_processing/scripts/constants.py` to point to the respecting data paths.
 2. rerun `make install`.
 
 ## To replicate the post processing pipeline results:
 1. With venv activated, make sure the current working directory is in `state_manuscript_analyses`.
-2. Download and unzip STATE_HG002_vcfs.zip and STATE_vcfs_f3_region_filtered.zip and place them in your current working directory.
+2. Download and unzip STATE_HG002_vcfs.zip and STATE_vcfs_f3_region_filtered.zip [our Zenodo repository](https://dx.doi.org/10.5281/zenodo.14399982) and place them in your current working directory.
 3. Start the `post_processing_wf/post_processing_wf.sh` from line 15 (`python post_processing_wf/scripts/funcotate.py`) and run until the end. The pipeline cannot be replicated from the begining because we cannot release the unfiltered vcfs due to them possibly containing germline variants. However the dataset did release can be processed for functional annotation and additional characterization.
