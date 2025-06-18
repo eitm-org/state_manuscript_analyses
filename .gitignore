@@ -183,3 +183,4 @@ all_paper_figs.docx
 #Rproject
 *.Rproj
 
+.DS_Store
